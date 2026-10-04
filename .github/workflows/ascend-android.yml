@@ -97,6 +97,7 @@ jobs:
             adb pull /sdcard/Android/data/com.ascend.app/files/screenshots/. screenshots/ || true
             adb exec-out run-as com.ascend.app tar -cf - files/screenshots > screenshots-internal.tar || true
             adb logcat -d > logcat.txt || true
+            grep -E "AscendTest|AndroidRuntime|TestRunner.*(failed|Exception)|FATAL" logcat.txt | tail -60 || true
             test ! -f ui-test-failed
 
       - uses: actions/upload-artifact@v4

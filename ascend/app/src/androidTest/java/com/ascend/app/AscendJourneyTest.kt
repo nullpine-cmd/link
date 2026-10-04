@@ -1,6 +1,11 @@
 package com.ascend.app
 
 import android.graphics.Bitmap
+import android.util.Log
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.ComposeTimeoutException
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollToNodeAction
@@ -47,15 +52,29 @@ class AscendJourneyTest {
     @Before
     fun freshStart() = runBlocking { app.container.repository.resetProgress() }
 
-    private fun waitForText(text: String, substring: Boolean = false, timeout: Long = 15_000) {
-        compose.waitUntil(timeout) {
-            compose.onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty()
-        }
-    }
+    private fun waitForText(text: String, substring: Boolean = false, timeout: Long = 15_000) =
+        waitFor("текст «$text»", hasText(text, substring = substring), timeout)
 
-    private fun waitForDescription(description: String, timeout: Long = 15_000) {
-        compose.waitUntil(timeout) {
-            compose.onAllNodesWithContentDescription(description).fetchSemanticsNodes().isNotEmpty()
+    private fun waitForDescription(description: String, timeout: Long = 15_000) =
+        waitFor("описание «$description»", hasContentDescription(description), timeout)
+
+    /** Ждёт элемент, а при неудаче перечисляет всё, что видно на экране, — чтобы причина была в логе CI. */
+    private fun waitFor(what: String, matcher: SemanticsMatcher, timeout: Long) {
+        try {
+            compose.waitUntil(timeout) { compose.onAllNodes(matcher).fetchSemanticsNodes().isNotEmpty() }
+        } catch (error: ComposeTimeoutException) {
+            val visible = compose.onAllNodes(SemanticsMatcher("любой узел") { true })
+                .fetchSemanticsNodes()
+                .mapNotNull { node ->
+                    node.config.getOrNull(SemanticsProperties.Text)?.joinToString(" ")
+                        ?: node.config.getOrNull(SemanticsProperties.ContentDescription)?.joinToString(" ")
+                }
+                .filter { it.isNotBlank() }
+                .distinct()
+                .take(80)
+            Log.e("AscendTest", "Не дождались $what. На экране: $visible")
+            screenshot("failure")
+            throw AssertionError("Не дождались $what. На экране: $visible", error)
         }
     }
 
