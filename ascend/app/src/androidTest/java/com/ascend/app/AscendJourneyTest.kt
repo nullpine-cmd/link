@@ -81,16 +81,24 @@ class AscendJourneyTest {
         }
     }
 
-    /** Закрывает все тосты празднований (касанием), чтобы они не перекрывали верх экрана. */
+    private fun toastCount(): Int = compose.onAllNodes(hasTestTag(CELEBRATION_TOAST_TAG)).fetchSemanticsNodes().size
+
+    /**
+     * Дожидается тостов празднований и закрывает их касанием, пока экран не будет чист
+     * хотя бы секунду: тосты перекрывают верх экрана, где живут кнопки «назад» и «добавить».
+     */
     private fun dismissCelebrations() {
-        repeat(12) {
-            val toasts = compose.onAllNodes(hasTestTag(CELEBRATION_TOAST_TAG)).fetchSemanticsNodes()
-            if (toasts.isEmpty()) {
-                Thread.sleep(600)
-                if (compose.onAllNodes(hasTestTag(CELEBRATION_TOAST_TAG)).fetchSemanticsNodes().isEmpty()) return
+        runCatching { compose.waitUntil(4_000) { toastCount() > 0 } }
+        var quietSince = System.currentTimeMillis()
+        val deadline = quietSince + 25_000
+        while (System.currentTimeMillis() < deadline) {
+            if (toastCount() > 0) {
+                runCatching { compose.onAllNodes(hasTestTag(CELEBRATION_TOAST_TAG)).onFirst().performClick() }
+                Thread.sleep(400)
+                quietSince = System.currentTimeMillis()
             } else {
-                compose.onAllNodes(hasTestTag(CELEBRATION_TOAST_TAG)).onFirst().performClick()
-                Thread.sleep(500)
+                if (System.currentTimeMillis() - quietSince > 1_200) return
+                Thread.sleep(200)
             }
         }
     }
