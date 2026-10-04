@@ -27,6 +27,10 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.ascend.app.ui.theme.AscendColors
@@ -90,6 +94,10 @@ fun QuestCheck(
         Canvas(
             Modifier
                 .matchParentSize()
+                .semantics {
+                    contentDescription = if (checked) "Выполнено" else "Выполнить"
+                    role = Role.Checkbox
+                }
                 .bounceClick(enabled = enabled, pressedScale = 0.85f, onClick = onClick),
         ) {
             val r = size.minDimension / 2f
