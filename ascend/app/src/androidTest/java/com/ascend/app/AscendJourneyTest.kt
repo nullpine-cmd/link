@@ -20,6 +20,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
@@ -217,6 +218,8 @@ class AscendJourneyTest {
         compose.onNodeWithText("Продолжить путь").performClick()
 
         compose.onNodeWithContentDescription("День").performClick()
+        waitForText("Прогресс дня")
+        mainList().performScrollToIndex(0)
         waitForText("Тестер", substring = true)
         screenshot("18_today")
     }
