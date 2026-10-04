@@ -10,6 +10,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,6 +41,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,7 +62,10 @@ import com.ascend.app.ui.theme.colors
 import com.ascend.core.Achievement
 import kotlinx.coroutines.delay
 
-/** Каркас тоста: плотное стекло, акцентное свечение, нажатие закрывает. */
+/** Метка тостов празднования — по ней их находят UI-тесты. */
+const val CELEBRATION_TOAST_TAG = "celebration-toast"
+
+/** Каркас тоста: плотное стекло, акцентное свечение; нажатие или смахивание вверх закрывает. */
 @Composable
 private fun ToastSurface(
     accent: Color,
@@ -70,6 +76,16 @@ private fun ToastSurface(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .testTag(CELEBRATION_TOAST_TAG)
+            .pointerInput(Unit) {
+                // Смахивание вверх закрывает тост.
+                detectVerticalDragGestures { change, dragAmount ->
+                    if (dragAmount < -10f) {
+                        change.consume()
+                        onDismiss()
+                    }
+                }
+            }
             .clip(shape)
             .background(Brush.verticalGradient(listOf(AscendColors.SurfaceTop, AscendColors.Night)))
             .background(Brush.linearGradient(listOf(accent.copy(alpha = 0.28f), Color.Transparent, accent.copy(alpha = 0.08f))))

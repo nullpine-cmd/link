@@ -10,6 +10,7 @@ import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -26,6 +27,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.ascend.app.domain.Celebration
 import com.ascend.app.domain.QuestDraft
+import com.ascend.app.ui.celebration.CELEBRATION_TOAST_TAG
 import com.ascend.core.Attribute
 import com.ascend.core.Difficulty
 import com.ascend.core.QuestKind
@@ -78,6 +80,20 @@ class AscendJourneyTest {
         }
     }
 
+    /** Закрывает все тосты празднований (касанием), чтобы они не перекрывали верх экрана. */
+    private fun dismissCelebrations() {
+        repeat(12) {
+            val toasts = compose.onAllNodes(hasTestTag(CELEBRATION_TOAST_TAG)).fetchSemanticsNodes()
+            if (toasts.isEmpty()) {
+                Thread.sleep(600)
+                if (compose.onAllNodes(hasTestTag(CELEBRATION_TOAST_TAG)).fetchSemanticsNodes().isEmpty()) return
+            } else {
+                compose.onAllNodes(hasTestTag(CELEBRATION_TOAST_TAG)).onFirst().performClick()
+                Thread.sleep(500)
+            }
+        }
+    }
+
     private fun mainList(): SemanticsNodeInteraction = compose.onAllNodes(hasScrollToNodeAction()).onFirst()
 
     private fun screenshot(name: String) {
@@ -122,6 +138,7 @@ class AscendJourneyTest {
         compose.onNodeWithText("Засчитать").performClick()
         waitForText("Отменить")
         screenshot("07_reward")
+        dismissCelebrations()
 
         // Вкладки
         compose.onNodeWithContentDescription("Квесты").performClick()
@@ -147,6 +164,7 @@ class AscendJourneyTest {
         compose.onNodeWithText("Засчитать").performClick()
         waitForText("стр. 20 из 480")
         screenshot("11_book_detail")
+        dismissCelebrations()
         compose.onNodeWithContentDescription("Назад").performClick()
 
         // Герой и достижения

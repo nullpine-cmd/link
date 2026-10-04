@@ -15,7 +15,7 @@ sealed interface CelebrationItem {
     val durationMillis: Long
 
     data class Reward(override val id: Long, val outcome: RewardOutcome) : CelebrationItem {
-        override val durationMillis: Long get() = 4_200
+        override val durationMillis: Long get() = 3_800
     }
 
     data class LevelUp(
@@ -35,11 +35,11 @@ sealed interface CelebrationItem {
         val xp: Int,
         val gold: Int,
     ) : CelebrationItem {
-        override val durationMillis: Long get() = 3_400
+        override val durationMillis: Long get() = 3_000
     }
 
     data class AchievementUnlocked(override val id: Long, val achievement: Achievement) : CelebrationItem {
-        override val durationMillis: Long get() = 3_600
+        override val durationMillis: Long get() = 3_200
     }
 
     data class Purchase(override val id: Long, val emoji: String, val title: String, val cost: Int) : CelebrationItem {
