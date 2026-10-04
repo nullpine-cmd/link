@@ -1,0 +1,412 @@
+% ===============================================================
+\section{Что нужно помнить заранее}
+% ===============================================================
+Кратные интегралы опираются на несколько вещей из первых семестров. Перечислим их, чтобы дальше на них просто ссылаться.
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+\item \textbf{Определённый интеграл} $\int_a^b f(x)\,dx$ --- это площадь под графиком $y=f(x)$ на отрезке $[a,b]$ (со знаком: то, что ниже оси $Ox$, считается с минусом). Считается по формуле Ньютона--Лейбница
+\[
+\int_a^b f(x)\,dx=F(b)-F(a),\qquad F'(x)=f(x).
+\]
+\item \textbf{Замена переменной в определённом интеграле.} Если $x=g(t)$, то
+\[
+\int_{g(\alpha)}^{g(\beta)} f(x)\,dx=\int_\alpha^\beta f\bigl(g(t)\bigr)\,g'(t)\,dt .
+\]
+Обратите внимание: при замене (а) меняются пределы и (б) появляется множитель $g'(t)$ --- «во сколько раз растягивается кусочек $dt$». Двумерный и трёхмерный аналог этого множителя --- \emph{якобиан}; на нём держится вся тема.
+\item \textbf{Интегрирование по частям:} $\displaystyle\int_a^b u\,dv=\bigl[uv\bigr]_a^b-\int_a^b v\,du$.
+\item \textbf{Частная производная} $\dfrac{\partial f}{\partial x}$: дифференцируем по $x$, считая все остальные переменные константами. Например, для $f=x^2y^3$: $\ f'_x=2xy^3,\ f'_y=3x^2y^2$.
+\item \textbf{Определители.}
+$\begin{vmatrix} a&b\\ c&d\end{vmatrix}=ad-bc$; определитель $3\times 3$ раскладывается по строке (лучше --- по строке с нулями).
+Определитель \emph{треугольной} матрицы (все элементы над или под диагональю --- нули) равен произведению диагональных элементов. И ещё: $\det(AB)=\det A\cdot\det B$.
+\item \textbf{Тригонометрия:} $\sin^2t+\cos^2t=1$;\ \ $\cos^2t=\dfrac{1+\cos2t}{2}$;\ \ $\sin^2t=\dfrac{1-\cos2t}{2}$;\ \ $\sin t\cos t=\dfrac{\sin2t}{2}$;\ \ $1+\operatorname{tg}^2t=\dfrac1{\cos^2t}$.
+\end{enumerate}
+
+% ===============================================================
+\section{Двойной интеграл}
+% ===============================================================
+\subsection{Откуда берётся двойной интеграл}
+
+Пусть на плоскости $Oxy$ лежит область $\Omega$, а над ней --- «крыша» $z=f(x,y)\geqslant 0$. Тело, у которого дно --- $\Omega$, крыша --- график $f$, а боковые стенки вертикальны, называют \emph{цилиндрическим телом}. Как найти его объём?
+
+\begin{center}
+\begin{tikzpicture}[x={(-0.55cm,-0.4cm)},y={(1cm,0cm)},z={(0cm,1cm)},scale=1.1,>=Stealth]
+  \draw[->] (0,0,0)--(3.6,0,0) node[below left]{$x$};
+  \draw[->] (0,0,0)--(0,5,0) node[right]{$y$};
+  \draw[->] (0,0,0)--(0,0,3.3) node[above]{$z$};
+  % основание
+  \fill[reg] plot[domain=0:360,samples=60,smooth] ({1.8+0.9*cos(\x)},{2.4+1.4*sin(\x)},0);
+  \draw[regline] plot[domain=0:360,samples=60,smooth] ({1.8+0.9*cos(\x)},{2.4+1.4*sin(\x)},0);
+  % крыша
+  \draw[thick,regline] plot[domain=0:360,samples=60,smooth] ({1.8+0.9*cos(\x)},{2.4+1.4*sin(\x)},{2.1+0.3*sin(\x)-0.25*cos(\x)});
+  % стенки
+  \foreach \a in {60,180,250,320} \draw[gray] ({1.8+0.9*cos(\a)},{2.4+1.4*sin(\a)},0)--({1.8+0.9*cos(\a)},{2.4+1.4*sin(\a)},{2.1+0.3*sin(\a)-0.25*cos(\a)});
+  % столбик
+  \fill[orange!50] (1.9,2.3,0)--(1.9,2.6,0)--(1.9,2.6,2.15)--(1.9,2.3,2.15)--cycle;
+  \draw[orange!70!black] (1.9,2.3,0)--(1.9,2.6,0)--(1.9,2.6,2.15)--(1.9,2.3,2.15)--cycle;
+  \node at (2.5,2.0,0) {\small $\Omega$};
+  \node[right] at (0,4.0,2.9) {\small $z=f(x,y)$};
+  \draw[orange!60!black,->] (0,6.2,1.2) node[right]{\scriptsize объём столбика $\approx f(\xi_i,\eta_i)\,\Delta S_i$} -- (1.9,2.65,1.3);
+\end{tikzpicture}
+\end{center}
+
+Разрежем $\Omega$ на маленькие кусочки $\Omega_1,\dots,\Omega_n$ с площадями $\Delta S_1,\dots,\Delta S_n$ и в каждом выберем точку $(\xi_i,\eta_i)$. Над маленьким кусочком тело почти не отличается от «столбика» высоты $f(\xi_i,\eta_i)$, поэтому
+\[
+V\approx\sum_{i=1}^n f(\xi_i,\eta_i)\,\Delta S_i .
+\]
+Чем мельче куски, тем точнее равенство. Это и есть идея двойного интеграла.
+
+\begin{defbox}[\ (двойной интеграл)]
+Сумма $\sum f(\xi_i,\eta_i)\,\Delta S_i$ называется \emph{интегральной суммой}. Пусть $\lambda$ --- наибольший из диаметров кусочков $\Omega_i$. Если при $\lambda\to0$ интегральные суммы стремятся к одному и тому же числу независимо от способа разбиения и выбора точек, это число называется \emph{двойным интегралом} функции $f$ по области $\Omega$:
+\[
+\iint\limits_{\Omega} f(x,y)\,dx\,dy=\lim_{\lambda\to0}\sum_{i=1}^n f(\xi_i,\eta_i)\,\Delta S_i .
+\]
+\end{defbox}
+
+Запись $dx\,dy$ --- это «элемент площади» $dS$: если резать область прямыми, параллельными осям, то маленький кусочек --- прямоугольник со сторонами $dx$ и $dy$, его площадь $dx\,dy$.
+
+\textbf{Смысл.} Если $f\geqslant0$ --- объём цилиндрического тела; если $f\equiv1$ --- площадь области: $\iint_\Omega dx\,dy=S(\Omega)$; если $f$ --- плотность пластинки --- её масса.
+
+\begin{thmbox}[\ (существование)]
+Если область $\Omega$ ограничена, замкнута, её граница состоит из конечного числа гладких кривых, а функция $f$ непрерывна на $\Omega$, то двойной интеграл существует. \emph{(Во всех наших задачах это выполнено.)}
+\end{thmbox}
+
+\textbf{Свойства} (те же, что у обычного интеграла):
+\begin{enumerate}[label=\arabic*)]
+\item линейность: $\iint(\alpha f+\beta g)=\alpha\iint f+\beta\iint g$;
+\item аддитивность: если $\Omega$ разрезана на $\Omega_1$ и $\Omega_2$, то $\iint_\Omega=\iint_{\Omega_1}+\iint_{\Omega_2}$;
+\item линии и точки имеют нулевую площадь, поэтому поведение функции (и замены переменных) на отдельных линиях на интеграл \emph{не влияет};
+\item симметрия: если область симметрична относительно оси (плоскости) и функция при отражении не меняется, интеграл равен удвоенному интегралу по половине области.
+\end{enumerate}
+
+\subsection{Как считать: сведение к повторному интегралу}
+
+Самое главное: двойной интеграл считают \emph{как два обычных}, один внутри другого.
+
+Пусть область «правильная по $y$»: каждая вертикальная прямая $x=\mathrm{const}$ пересекает её по одному отрезку. Тогда область можно записать в виде
+\[
+\Omega=\{\,a\leqslant x\leqslant b,\quad y_1(x)\leqslant y\leqslant y_2(x)\,\}.
+\]
+Вертикаль «входит» в область через нижнюю кривую $y=y_1(x)$ и «выходит» через верхнюю $y=y_2(x)$.
+
+\begin{center}
+\begin{tikzpicture}[scale=1.0,>=Stealth]
+  \draw[->] (-0.3,0)--(5.2,0) node[below]{$x$};
+  \draw[->] (0,-0.3)--(0,3.6) node[left]{$y$};
+  \fill[reg] plot[domain=1:4.2,smooth] (\x,{0.6+0.15*(\x-2.5)^2}) -- plot[domain=4.2:1,smooth] (\x,{3.0-0.12*(\x-2.2)^2}) -- cycle;
+  \draw[thick,regline] plot[domain=1:4.2,smooth] (\x,{0.6+0.15*(\x-2.5)^2}) node[right]{\small $y=y_1(x)$};
+  \draw[thick,regline] plot[domain=1:4.2,smooth] (\x,{3.0-0.12*(\x-2.2)^2}) node[right]{\small $y=y_2(x)$};
+  \draw[regline] (1,{0.6+0.15*2.25})--(1,{3.0-0.12*1.44});
+  \draw[regline] (4.2,{0.6+0.15*2.89})--(4.2,{3.0-0.12*4});
+  \draw[dashed] (1,0) node[below]{$a$}--(1,0.94);
+  \draw[dashed] (4.2,0) node[below]{$b$}--(4.2,1.03);
+  \draw[->,very thick,hint] (2.8,0)--(2.8,{0.6+0.15*0.09}) node[pos=0.5,right]{\scriptsize вход};
+  \draw[very thick,hint] (2.8,{0.6+0.15*0.09})--(2.8,{3.0-0.12*0.36});
+  \draw[->,very thick,hint] (2.8,{3.0-0.12*0.36})--(2.8,3.5) node[right]{\scriptsize выход};
+  \node[below] at (2.8,0) {$x$};
+\end{tikzpicture}
+\end{center}
+
+\begin{thmbox}[\ (сведение двойного интеграла к повторному)]
+Если $f$ непрерывна в области $\Omega=\{a\leqslant x\leqslant b,\ y_1(x)\leqslant y\leqslant y_2(x)\}$, то
+\[
+\iint\limits_\Omega f(x,y)\,dx\,dy=\int_a^b dx\int_{y_1(x)}^{y_2(x)} f(x,y)\,dy .
+\]
+Аналогично, если $\Omega=\{c\leqslant y\leqslant d,\ x_1(y)\leqslant x\leqslant x_2(y)\}$, то
+\[
+\iint\limits_\Omega f\,dx\,dy=\int_c^d dy\int_{x_1(y)}^{x_2(y)} f(x,y)\,dx .
+\]
+\end{thmbox}
+
+\textbf{Как это читать.} Запись $\int_a^b dx\int_{y_1(x)}^{y_2(x)} f\,dy$ означает $\int_a^b\Bigl(\int_{y_1(x)}^{y_2(x)} f(x,y)\,dy\Bigr)dx$. Сначала считается \emph{внутренний} интеграл по $y$, причём $x$ в нём --- просто число. Получается функция от $x$, и её интегрируют по $x$.
+Смысл: внутренний интеграл --- площадь сечения тела плоскостью $x=\mathrm{const}$; внешний «складывает» эти сечения.
+
+\begin{notebox}[Три правила расстановки пределов]
+\begin{enumerate}[label=\arabic*)]
+\item Пределы \textbf{внешнего} интеграла --- всегда \textbf{числа}.
+\item Пределы внутреннего интеграла могут зависеть только от внешних переменных.
+\item Если нижняя (или верхняя) граница на разных участках задаётся разными формулами, область \textbf{режут на части} и пишут сумму интегралов (так будет в задаче 3).
+\end{enumerate}
+\end{notebox}
+
+\textbf{Мини-пример.} $\Omega$ --- прямоугольник $0\leqslant x\leqslant1$, $0\leqslant y\leqslant2$. Тогда
+$\iint_\Omega xy\,dx\,dy=\int_0^1 dx\int_0^2 xy\,dy=\int_0^1 x\cdot\frac{y^2}{2}\Big|_0^2dx=\int_0^1 2x\,dx=1.$
+Для прямоугольника и функции-произведения $f=g(x)h(y)$ интеграл распадается в произведение: $\int_0^1x\,dx\cdot\int_0^2y\,dy=\frac12\cdot2=1$. Этим приёмом мы будем постоянно пользоваться: \emph{хорошая замена превращает область в прямоугольник, а подынтегральную функцию --- в произведение.}
+
+\textbf{Смена порядка интегрирования} --- это та же область, но описанная «в другую сторону»: вместо вертикалей смотрим на горизонтали. Делается всегда по рисунку.
+
+% ===============================================================
+\section{Замена переменных в двойном интеграле}
+% ===============================================================
+\subsection{Зачем}
+Если граница области --- окружности, гиперболы, лучи, параллелограмм, то в декартовых координатах пределы получаются неудобными (корни, разбиение на куски). Идея: ввести новые переменные $(u,v)$,
+\[
+x=x(u,v),\qquad y=y(u,v),
+\]
+так, чтобы граница превратилась в линии $u=\mathrm{const}$, $v=\mathrm{const}$. Тогда новая область --- прямоугольник, и все пределы --- числа.
+
+Линии $u=\mathrm{const}$ и $v=\mathrm{const}$ рисуют на плоскости $Oxy$ «криволинейную сетку». Например, для полярных координат это окружности $r=\mathrm{const}$ и лучи $\varphi=\mathrm{const}$.
+
+\subsection{Якобиан --- во сколько раз растягивается площадь}
+
+Возьмём в плоскости $(u,v)$ маленький прямоугольник со сторонами $du$, $dv$. Куда он перейдёт?
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth]
+  \begin{scope}
+  \draw[->] (-0.2,0)--(3,0) node[below]{$u$};
+  \draw[->] (0,-0.2)--(0,2.6) node[left]{$v$};
+  \fill[newreg] (1,0.8) rectangle (2,1.6);
+  \draw[thick,newline] (1,0.8) rectangle (2,1.6);
+  \node[below] at (1.5,0.8) {\scriptsize $du$};
+  \node[right] at (2,1.2) {\scriptsize $dv$};
+  \node[below left] at (1,0.8) {\scriptsize $(u,v)$};
+  \end{scope}
+  \draw[->,thick] (3.4,1.2) to[bend left=20] node[above]{\small $x=x(u,v)$} node[below]{\small $y=y(u,v)$} (5.4,1.2);
+  \begin{scope}[xshift=6cm]
+  \draw[->] (-0.2,0)--(3.6,0) node[below]{$x$};
+  \draw[->] (0,-0.2)--(0,2.6) node[left]{$y$};
+  \fill[reg] (1,0.6) to[bend right=8] (2.4,1.0) to[bend left=5] (2.7,2.0) to[bend left=8] (1.3,1.6) to[bend right=5] cycle;
+  \draw[thick,regline] (1,0.6) to[bend right=8] (2.4,1.0) to[bend left=5] (2.7,2.0) to[bend left=8] (1.3,1.6) to[bend right=5] cycle;
+  \draw[->,very thick,hint] (1,0.6)--(2.4,1.0) node[pos=0.75,below=3pt]{\scriptsize $\vec a$};
+  \draw[->,very thick,hint] (1,0.6)--(1.3,1.6) node[midway,left]{\scriptsize $\vec b$};
+  \node[left] at (1,0.6) {\scriptsize $M$};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+Вершина $(u,v)$ переходит в точку $M=(x(u,v),y(u,v))$. Соседняя вершина $(u+du,v)$ --- в точку, сдвинутую на вектор
+\[
+\vec a=\bigl(x(u+du,v)-x(u,v),\ y(u+du,v)-y(u,v)\bigr)\approx\Bigl(\frac{\partial x}{\partial u}du,\ \frac{\partial y}{\partial u}du\Bigr)
+\]
+(по определению производной). Аналогично вершина $(u,v+dv)$ сдвигается на $\vec b\approx\bigl(\frac{\partial x}{\partial v}dv,\ \frac{\partial y}{\partial v}dv\bigr)$.
+Значит, образ маленького прямоугольника --- почти параллелограмм, натянутый на $\vec a,\vec b$. Площадь параллелограмма, натянутого на векторы $(a_1,a_2)$ и $(b_1,b_2)$, равна $|a_1b_2-a_2b_1|$, то есть модулю определителя. Получаем
+\[
+dS_{xy}\approx\left|\det\begin{pmatrix}\dfrac{\partial x}{\partial u}&\dfrac{\partial x}{\partial v}\\[2mm]\dfrac{\partial y}{\partial u}&\dfrac{\partial y}{\partial v}\end{pmatrix}\right|du\,dv .
+\]
+
+\begin{defbox}[\ (якобиан)]
+Определитель
+$\displaystyle J=\frac{\partial(x,y)}{\partial(u,v)}=\begin{vmatrix}x'_u&x'_v\\ y'_u&y'_v\end{vmatrix}$
+называется \emph{якобианом} замены. Его модуль $|J|$ показывает, во сколько раз замена растягивает площади вблизи данной точки: $dx\,dy=|J|\,du\,dv$.
+\end{defbox}
+
+\begin{thmbox}[\ (замена переменных в двойном интеграле)]
+Пусть
+\begin{enumerate}[label=\arabic*)]
+\item формулы $x=x(u,v)$, $y=y(u,v)$ взаимно однозначно переводят область $\Omega_{uv}$ в область $\Omega_{xy}$;
+\item функции $x(u,v),y(u,v)$ имеют непрерывные частные производные;
+\item якобиан $J\neq0$ внутри $\Omega_{uv}$;
+\item $f$ непрерывна на $\Omega_{xy}$.
+\end{enumerate}
+Тогда
+\[
+\boxed{\ \iint\limits_{\Omega_{xy}} f(x,y)\,dx\,dy=\iint\limits_{\Omega_{uv}} f\bigl(x(u,v),y(u,v)\bigr)\,|J(u,v)|\,du\,dv.\ }
+\]
+Условия 1) и 3) разрешается нарушать на множестве нулевой площади (на отдельных точках и линиях, например на границе).
+\end{thmbox}
+
+Пример такого нарушения: в полярных координатах вся линия $r=0$ переходит в одну точку $O$ и там $J=0$ --- формула всё равно верна, потому что линия имеет нулевую площадь.
+
+\textbf{Почему модуль?} В двойном интеграле пределы всегда ставятся от меньшего к большему, а площадь положительна. Знак якобиана говорит лишь о том, «перевернулась» ли ориентация --- для площади это неважно.
+
+\subsection{Как найти новую область (график 2)}
+\begin{enumerate}[label=\arabic*)]
+\item Каждую линию границы (1), (2), \dots\ переписываем в новых переменных.
+\item Определяем, по какую сторону от каждой линии лежит область (переписываем неравенства, задающие область, или подставляем пробную точку).
+\item Рисуем новую область. Хорошая замена делает её прямоугольником (или хотя бы областью, где пределы простые).
+\end{enumerate}
+
+\subsection{Два полезных свойства якобиана}
+\textbf{(а) Обратная замена.} Часто новые переменные удобно задать формулами $u=u(x,y)$, $v=v(x,y)$ (как в задачах 1, 5, 8). Тогда не обязательно выражать $x,y$ через $u,v$:
+\[
+\frac{\partial(x,y)}{\partial(u,v)}=\frac{1}{\ \dfrac{\partial(u,v)}{\partial(x,y)}\ } .
+\]
+Почему: если сделать замену и сразу обратную, получится тождественное отображение, его матрица производных --- единичная. По правилу дифференцирования сложной функции матрицы производных перемножаются, а $\det(AB)=\det A\det B$, значит, произведение двух якобианов равно $1$.
+
+\textbf{(б) Замена в два этапа.} Если $(u,v)\to(p,q)\to(x,y)$, то по той же причине якобиан всей замены равен \emph{произведению} якобианов этапов. Так удобно считать якобиан сферических координат (см.\ ниже).
+
+\subsection{Полярные координаты}
+\begin{minipage}{0.55\linewidth}
+\[
+\begin{cases}x=r\cos\varphi,\\ y=r\sin\varphi,\end{cases}\qquad r\geqslant0,\ \ 0\leqslant\varphi<2\pi .
+\]
+$r=\sqrt{x^2+y^2}$ --- расстояние от точки до начала координат, $\varphi$ --- угол от положительной полуоси $Ox$ (против часовой стрелки).
+\[
+J=\begin{vmatrix}\cos\varphi&-r\sin\varphi\\ \sin\varphi&r\cos\varphi\end{vmatrix}=r\cos^2\varphi+r\sin^2\varphi=r,
+\]
+\[|J|=r .
+\]
+Геометрически: «прямоугольник» $dr\times d\varphi$ --- это кусочек кольца со сторонами $dr$ и $r\,d\varphi$ (длина дуги), его площадь $r\,dr\,d\varphi$.
+\end{minipage}\hfill
+\begin{minipage}{0.4\linewidth}\centering
+\begin{tikzpicture}[scale=1.1,>=Stealth]
+  \draw[->] (-0.3,0)--(3.2,0) node[below]{$x$};
+  \draw[->] (0,-0.3)--(0,3.0) node[left]{$y$};
+  \fill[reg] (35:1.8) arc(35:50:1.8) -- (50:2.4) arc(50:35:2.4) -- cycle;
+  \draw[regline,thick] (35:1.8) arc(35:50:1.8) -- (50:2.4) arc(50:35:2.4) -- cycle;
+  \draw[dashed] (0,0)--(35:2.9);
+  \draw[dashed] (0,0)--(50:2.9);
+  \draw (0.6,0) arc(0:35:0.6); \node at (17:0.85) {\scriptsize $\varphi$};
+  \node[right] at (30:2.15) {\scriptsize $dr$};
+  \node[above] at (45:2.5) {\scriptsize $r\,d\varphi$};
+  \draw[gray] (0,0) -- (42:1.8) node[pos=0.5,above left]{\scriptsize $r$};
+\end{tikzpicture}
+\end{minipage}
+
+\textbf{Словарик полярных координат:}
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+в декартовых & в полярных\\
+\midrule
+окружность $x^2+y^2=R^2$ & $r=R$\\
+луч $y=kx$ ($x>0$) & $\varphi=\operatorname{arctg}k$\\
+прямая $x=c$ & $r=c/\cos\varphi$\\
+прямая $y=c$ & $r=c/\sin\varphi$\\
+функция от $\sqrt{x^2+y^2}$ & функция от $r$\\
+\bottomrule
+\end{tabular}
+\end{center}
+\textbf{Как ставить пределы:} обычно внешний --- угол $\varphi$ (между какими лучами зажата область), внутренний --- $r$: идём по лучу из начала координат; где вошли в область --- нижний предел, где вышли --- верхний.
+
+\textbf{Обобщённые полярные координаты.} $x=a\,r\cos^n\varphi$, $y=b\,r\sin^n\varphi$ ($0\leqslant\varphi\leqslant\frac\pi2$). Якобиан:
+\[
+\begin{aligned}J&=\begin{vmatrix}a\cos^n\varphi&-na\,r\cos^{n-1}\varphi\sin\varphi\\ b\sin^n\varphi&nb\,r\sin^{n-1}\varphi\cos\varphi\end{vmatrix}
+\\&=nab\,r\cos^{n-1}\varphi\sin^{n-1}\varphi\,(\cos^2\varphi+\sin^2\varphi)=nab\,r\cos^{n-1}\varphi\sin^{n-1}\varphi .\end{aligned}
+\]
+При $n=1$, $a=b=1$ получаются обычные полярные координаты.
+
+\subsection{Линейная замена}
+$u=a_1x+b_1y$, $v=a_2x+b_2y$. Тогда $\dfrac{\partial(u,v)}{\partial(x,y)}=a_1b_2-a_2b_1$ --- число, и $|J|=\dfrac{1}{|a_1b_2-a_2b_1|}$. Такая замена переводит параллелограмм со сторонами $u=\mathrm{const}$, $v=\mathrm{const}$ в прямоугольник (задача 1).
+
+% ===============================================================
+\section{Тройной интеграл}
+% ===============================================================
+Определение дословно повторяет двумерное: тело $V$ режется на маленькие кусочки объёма $\Delta V_i$,
+\[
+\iiint\limits_V f(x,y,z)\,dx\,dy\,dz=\lim_{\lambda\to0}\sum_i f(\xi_i,\eta_i,\zeta_i)\,\Delta V_i .
+\]
+Смысл: при $f\equiv1$ --- \textbf{объём тела} $V=\iiint_V dx\,dy\,dz$; если $f$ --- плотность, то масса.
+
+\subsection{Сведение к повторному: «проекция + отрезок»}
+Пусть каждая вертикальная прямая пересекает тело по одному отрезку: снизу тело ограничено поверхностью $z=z_1(x,y)$ («пол»), сверху --- $z=z_2(x,y)$ («крыша»), а $D$ --- проекция тела на плоскость $Oxy$. Тогда
+\[
+\boxed{\ \iiint\limits_V f\,dx\,dy\,dz=\iint\limits_D dx\,dy\int_{z_1(x,y)}^{z_2(x,y)} f(x,y,z)\,dz,\qquad
+\text{объём:}\ \ V=\iint\limits_D\bigl(z_2(x,y)-z_1(x,y)\bigr)\,dx\,dy.\ }
+\]
+
+\begin{notebox}[Как найти проекцию $D$]
+\begin{itemize}
+\item Поверхности, в уравнения которых \textbf{не входит $z$} (например $y=x$, $y=x^2$, $x+y=1$), --- это вертикальные «стенки». На плоскость $Oxy$ они проектируются в линии с тем же уравнением.
+\item Линия пересечения пола и крыши: приравниваем $z_1(x,y)=z_2(x,y)$ --- получаем уравнение без $z$, это тоже кусок границы $D$.
+\item Чтобы понять, какая поверхность --- пол, а какая --- крыша, подставляем пробную точку из $D$.
+\end{itemize}
+\end{notebox}
+
+Иногда удобнее \textbf{метод сечений}: если сечение тела плоскостью $z=\mathrm{const}$ --- простая фигура $D(z)$, то
+$\iiint_V f=\int_{z_{\min}}^{z_{\max}}dz\iint_{D(z)}f\,dx\,dy$ (используем в задаче 8 для проверки).
+
+% ===============================================================
+\section{Замена переменных в тройном интеграле}
+% ===============================================================
+Всё как в плоскости, только матрица $3\times3$:
+\[
+J=\frac{\partial(x,y,z)}{\partial(u,v,w)}=\begin{vmatrix}x'_u&x'_v&x'_w\\ y'_u&y'_v&y'_w\\ z'_u&z'_v&z'_w\end{vmatrix},\qquad
+\iiint\limits_{V} f\,dx\,dy\,dz=\iiint\limits_{V_{uvw}} f\bigl(x(u,v,w),\dots\bigr)\,|J|\,du\,dv\,dw .
+\]
+$|J|$ --- коэффициент растяжения объёма: маленький параллелепипед $du\,dv\,dw$ переходит в почти параллелепипед, натянутый на векторы $(x'_u,y'_u,z'_u)du$, $(x'_v,\dots)dv$, $(x'_w,\dots)dw$, а объём параллелепипеда равен модулю определителя из координат векторов. Условия теоремы --- те же, что в двумерном случае (нарушения допускаются на множествах нулевого объёма: точках, линиях, поверхностях).
+
+\subsection{Цилиндрические координаты}
+\[
+\begin{cases}x=r\cos\varphi,\\ y=r\sin\varphi,\\ z=z,\end{cases}\qquad |J|=r .
+\]
+(Определитель $3\times3$ раскладывается по последней строке $(0,0,1)$ и сводится к полярному.) Удобны, когда в уравнениях встречается $x^2+y^2$:
+параболоид $z=x^2+y^2\ \to\ z=r^2$; конус $z=\sqrt{x^2+y^2}\ \to\ z=r$; цилиндр $x^2+y^2=R^2\ \to\ r=R$.
+
+\subsection{Сферические координаты}
+\begin{minipage}{0.56\linewidth}
+\[
+\begin{cases}x=r\cos\psi\cos\varphi,\\ y=r\cos\psi\sin\varphi,\\ z=r\sin\psi,\end{cases}\qquad
+\begin{array}{l} r\geqslant0,\\ 0\leqslant\varphi<2\pi,\\ -\frac\pi2\leqslant\psi\leqslant\frac\pi2.\end{array}
+\]
+$r=\sqrt{x^2+y^2+z^2}$ --- расстояние до начала координат, $\varphi$ --- «долгота» (угол в плоскости $Oxy$ от оси $Ox$), $\psi$ --- «широта» (угол между радиус-вектором и плоскостью $Oxy$; $\psi>0$ --- верхнее полупространство).
+\end{minipage}\hfill
+\begin{minipage}{0.4\linewidth}\centering
+\begin{tikzpicture}[x={(-0.55cm,-0.45cm)},y={(1cm,0cm)},z={(0cm,1cm)},scale=1.2,>=Stealth]
+  \draw[->] (0,0,0)--(2.4,0,0) node[below left]{$x$};
+  \draw[->] (0,0,0)--(0,2.6,0) node[right]{$y$};
+  \draw[->] (0,0,0)--(0,0,2.4) node[above]{$z$};
+  \coordinate (P) at ({1.8*cos(35)*cos(50)},{1.8*cos(35)*sin(50)},{1.8*sin(35)});
+  \coordinate (Q) at ({1.8*cos(35)*cos(50)},{1.8*cos(35)*sin(50)},0);
+  \draw[thick,hint] (0,0,0)--(P) node[above right]{\small $M$};
+  \draw[dashed] (0,0,0)--(Q)--(P);
+  \draw (0.7,0,0) arc[start angle=0,end angle=50,radius=0.7] ;
+  \node at ({0.95*cos(25)},{0.95*sin(25)},0) {\scriptsize $\varphi$};
+  \node at ({1.1*cos(18)*cos(50)},{1.1*cos(18)*sin(50)},{1.1*sin(18)}) {\scriptsize $\psi$};
+  \node at ({0.9*cos(35)*cos(50)},{0.9*cos(35)*sin(50)},{0.9*sin(35)+0.25}) {\scriptsize $r$};
+\end{tikzpicture}
+\end{minipage}
+
+\textbf{Якобиан --- в два этапа} (свойство (б)). Этап 1: цилиндрические координаты $x=\rho\cos\varphi$, $y=\rho\sin\varphi$, $z=z$, якобиан $\rho$. Этап 2: в вертикальной полуплоскости $(\rho,z)$ вводим «полярные» координаты $\rho=r\cos\psi$, $z=r\sin\psi$, якобиан $r$. Итого
+\[
+\boxed{\ |J|=\rho\cdot r=r^2\cos\psi .\ }
+\]
+\emph{Замечание.} В части учебников вместо широты берут угол $\theta$ от оси $Oz$ ($z=r\cos\theta$), тогда $|J|=r^2\sin\theta$ --- это то же самое, так как $\theta=\frac\pi2-\psi$.
+
+\textbf{Словарик:} сфера $x^2+y^2+z^2=R^2\to r=R$; сфера $x^2+y^2+z^2=2az\to r=2a\sin\psi$; конус $x^2+y^2=z^2$ ($z\geqslant0$) $\to\psi=\frac\pi4$; плоскость $z=0\to\psi=0$; плоскости $y=0$, $x=0$ (при $x,y\geqslant0$) $\to\varphi=0$, $\varphi=\frac\pi2$.
+
+\subsection{Обобщённые сферические координаты}
+Для тел вида $\left(\frac xa\right)^{2/n}+\left(\frac yb\right)^{2/n}+\left(\frac zc\right)^{2/n}\leqslant1$ (в первом октанте) берут
+\[
+\begin{cases}x=a\,r\cos^n\varphi\cos^n\psi,\\ y=b\,r\sin^n\varphi\cos^n\psi,\\ z=c\,r\sin^n\psi,\end{cases}\qquad 0\leqslant\varphi,\psi\leqslant\tfrac\pi2 .
+\]
+Тогда $\left(\frac xa\right)^{2/n}+\left(\frac yb\right)^{2/n}+\left(\frac zc\right)^{2/n}=r^{2/n}\bigl(\cos^2\varphi\cos^2\psi+\sin^2\varphi\cos^2\psi+\sin^2\psi\bigr)=r^{2/n}$, и поверхность превращается в $r=1$.
+
+Якобиан снова в два этапа. Этап 1: $x=a\rho\cos^n\varphi$, $y=b\rho\sin^n\varphi$, $z=z$ --- обобщённые полярные, якобиан $nab\,\rho\cos^{n-1}\varphi\sin^{n-1}\varphi$. Этап 2: $\rho=r\cos^n\psi$, $z=c\,r\sin^n\psi$ --- снова обобщённые полярные, якобиан $nc\,r\cos^{n-1}\psi\sin^{n-1}\psi$. Перемножаем и подставляем $\rho=r\cos^n\psi$:
+\[
+\boxed{\ |J|=n^2abc\,r^2\cos^{n-1}\varphi\,\sin^{n-1}\varphi\,\cos^{2n-1}\psi\,\sin^{n-1}\psi .\ }
+\]
+
+\subsection{«Выпрямляющие» (треугольные) замены}
+Если $x$ зависит только от $u$, $y$ --- от $u,v$, а $z$ --- от $u,v,w$, то матрица производных треугольная и
+$J=x'_u\cdot y'_v\cdot z'_w$. Типичный приём: если $y$ меняется от $0$ до $g(x)$, кладём $y=g(x)\cdot v$, $v\in[0,1]$ --- «доля пути». Каждый такой шаг превращает криволинейную границу в плоскость $v=1$ (задачи 2 и 6).
+
+% ===============================================================
+\section{Техника однократных интегралов, которая понадобится}
+% ===============================================================
+\begin{enumerate}[label=\textbf{\arabic*.}]
+\item \textbf{Степени косинуса по полному периоду.}
+$\int_0^{2\pi}\cos t\,dt=0$;\quad
+$\int_0^{2\pi}\cos^2t\,dt=\int_0^{2\pi}\frac{1+\cos2t}{2}dt=\pi$;\quad
+$\int_0^{2\pi}\cos^3t\,dt=\int_0^{2\pi}(1-\sin^2t)\,d(\sin t)=\bigl[\sin t-\tfrac{\sin^3t}{3}\bigr]_0^{2\pi}=0$;\\
+$\cos^4t=\Bigl(\frac{1+\cos2t}{2}\Bigr)^2=\frac38+\frac{\cos2t}{2}+\frac{\cos4t}{8}$, поэтому $\int_0^{2\pi}\cos^4t\,dt=\frac38\cdot2\pi=\frac{3\pi}{4}$.
+\item \textbf{$\int\sin^m x\cos^n x\,dx$, где одна из степеней нечётная:} отщепляем одну нечётную степень и делаем замену. Например,
+$\int_0^{\pi/2}\cos^3\psi\sin\psi\,d\psi=\bigl[-\tfrac{\cos^4\psi}{4}\bigr]_0^{\pi/2}=\tfrac14$;\quad
+$\int_0^{\pi/2}\sin^3\varphi\cos^3\varphi\,d\varphi\overset{t=\sin\varphi}{=}\int_0^1t^3(1-t^2)\,dt=\tfrac1{12}$.
+\item \textbf{Обе степени чётные:} понижаем степень:
+\[\int_0^{\pi/2}\sin^2\varphi\cos^2\varphi\,d\varphi=\frac14\int_0^{\pi/2}\sin^22\varphi\,d\varphi=\frac14\int_0^{\pi/2}\frac{1-\cos4\varphi}{2}d\varphi=\frac{\pi}{16}.\]
+\item \textbf{По частям:} $\int r\sin r\,dr=-r\cos r+\int\cos r\,dr=-r\cos r+\sin r+C$.
+\item \textbf{Замена $t=\operatorname{tg}\varphi$:} $dt=\frac{d\varphi}{\cos^2\varphi}$, $\frac1{\cos^2\varphi}=1+t^2$ --- для интегралов вида $\int\frac{\sin^k\varphi}{\cos^{k+2m}\varphi}d\varphi$.
+\end{enumerate}
+
+% ===============================================================
+\section{Алгоритм оформления: пять шагов}
+% ===============================================================
+Каждая задача ниже решена строго по одной схеме.
+
+\begin{enumerate}[label=\textbf{Шаг \arabic*.},leftmargin=4em]
+\item \textbf{Шапка.} Слева --- сам интеграл $\iint_{\Omega_{xy}}\dots\,dx\,dy$ или $\iiint_V\dots\,dx\,dy\,dz$. Справа --- граница ($\partial\Omega_{xy}$ или $\partial V$) с нумерацией поверхностей (1), (2), \dots\ и ограничениями знаков.
+\item \textbf{Два графика рядом.} График 1 --- область (тело) в старых координатах: точки пересечения, симметрия, форма. График 2 --- та же область в новых координатах, где она «распрямилась» в прямоугольник, полосу или параллелепипед.
+\item \textbf{Замена и модуль якобиана.} Система перехода в столбик, справа --- $|J|$.
+\item \textbf{Пределы по второму графику.} От констант к зависимостям: сначала углы ($\varphi,\psi$), затем радиус $r$ или высота $z$.
+\item \textbf{Повторный интеграл и счёт} изнутри наружу до числа.
+\end{enumerate}
+
+\begin{notebox}[Чек-лист перед ответом]
+\begin{itemize}
+\item Не забыт ли $|J|$? (Самая частая ошибка: $dx\,dy\ne dr\,d\varphi$, а $=r\,dr\,d\varphi$.)
+\item Пределы внешнего интеграла --- числа?
+\item Знак ответа разумен? (Объём --- положителен; если функция отрицательна на всей области, интеграл отрицателен.)
+\item По возможности --- проверка другим способом (в декартовых координатах, по известным формулам объёма и т.\,п.). Во всех задачах ниже такая проверка сделана.
+\end{itemize}
+\end{notebox}

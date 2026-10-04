@@ -1,0 +1,525 @@
+% ===============================================================
+%  Задачи 1-5 (двойные интегралы)
+% ===============================================================
+
+% ---------------------------------------------------------------
+\task{Вычислить $\displaystyle\iint_\Omega(x^2+y^2)\,dx\,dy$, если $\Omega$ --- параллелограмм со сторонами $y=x$, $y=x+a$, $y=a$, $y=3a$ $(a>0)$.}
+
+\step{1}{Шапка}
+\begin{shapka}
+$\displaystyle I=\iint\limits_{\Omega_{xy}}(x^2+y^2)\,dx\,dy$
+\tcblower
+$\partial\Omega_{xy}:\quad
+\begin{array}{lll}
+y=x & & (1)\\
+y=x+a & & (2)\\
+y=a & & (3)\\
+y=3a & & (4)
+\end{array}\qquad a>0$
+\end{shapka}
+
+\step{2}{Два графика}
+Прямые (1) и (2) параллельны (обе с наклоном $1$), прямые (3) и (4) --- тоже (обе горизонтальны). Вершины параллелограмма --- попарные пересечения:
+(1)$\cap$(3): $(a,a)$;\ \ (2)$\cap$(3): $(0,a)$;\ \ (1)$\cap$(4): $(3a,3a)$;\ \ (2)$\cap$(4): $(2a,3a)$.
+
+Область описывается так: $a\leqslant y\leqslant 3a$ (между (3) и (4)), и при фиксированном $y$ точка лежит между прямыми (2) и (1): $y-a\leqslant x\leqslant y$, то есть $0\leqslant y-x\leqslant a$. Это и подсказывает замену: семейство параллельных прямых $y-x=\mathrm{const}$ и семейство $y=\mathrm{const}$ станут координатными линиями.
+
+\begin{center}
+\begin{minipage}[t]{0.49\linewidth}\centering
+\begin{tikzpicture}[scale=1.0,>=Stealth]
+  \fill[reg] (0,1)--(1,1)--(3,3)--(2,3)--cycle;
+  \draw[->] (-1.3,0)--(4.0,0) node[below]{$x$};
+  \draw[->] (0,-0.5)--(0,4.0) node[left]{$y$};
+  \draw[dashed,gray] (-0.4,-0.4)--(3.6,3.6) node[right,black]{\scriptsize (1)};
+  \draw[dashed,gray] (-1.3,-0.3)--(2.7,3.7) node[above,black]{\scriptsize (2)};
+  \draw[dashed,gray] (-1.3,1)--(3.7,1) node[right,black]{\scriptsize (3)};
+  \draw[dashed,gray] (-1.3,3)--(3.7,3) node[right,black]{\scriptsize (4)};
+  \draw[very thick,regline] (0,1)--(1,1)--(3,3)--(2,3)--cycle;
+  \draw[->,thick,hint] (-1.1,2)--(1,2);
+  \draw[thick,hint] (1,2)--(2,2);
+  \draw[->,thick,hint] (2,2)--(3.2,2);
+  \foreach \p in {(0,1),(1,1),(3,3),(2,3)} \fill[regline] \p circle(1.5pt);
+  \node[below right] at (1,1) {\scriptsize $(a,a)$};
+  \node[above] at (3.15,3) {\scriptsize $(3a,3a)$};
+  \node[above left] at (2,3) {\scriptsize $(2a,3a)$};
+  \node[above left] at (0,1) {\scriptsize $(0,a)$};
+  \node[below] at (1,0) {\scriptsize $a$};
+  \node[below] at (2,0) {\scriptsize $2a$};
+  \node[below] at (3,0) {\scriptsize $3a$};
+  \node at (2.05,2.55) {\small $\Omega_{xy}$};
+\end{tikzpicture}
+
+\small График 1: параллелограмм в плоскости $(x,y)$. Красная горизонталь входит через (2) $x=y-a$, выходит через (1) $x=y$
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}\centering
+\begin{tikzpicture}[scale=1.0,>=Stealth]
+  \fill[newreg] (0,1) rectangle (1.4,3);
+  \draw[->] (-0.5,0)--(2.6,0) node[below]{$u$};
+  \draw[->] (0,-0.5)--(0,4.0) node[left]{$v$};
+  \draw[very thick,newline] (0,1) rectangle (1.4,3);
+  \node[left] at (0,2) {\scriptsize (1) $u=0$};
+  \node[right] at (1.4,2.5) {\scriptsize (2) $u=a$};
+  \node[below right] at (0.05,1) {\scriptsize (3) $v=a$};
+  \node[above] at (0.7,3) {\scriptsize (4) $v=3a$};
+  \draw[dashed,gray] (1.4,0)--(1.4,1);
+  \node[below] at (1.4,0) {\scriptsize $a$};
+  \node[left] at (0,1) {\scriptsize $a$};
+  \node[left] at (0,3) {\scriptsize $3a$};
+  \draw[->,thick,hint] (0,1.7)--(1.4,1.7);
+  \node at (0.7,2.3) {$\Omega_{uv}$};
+\end{tikzpicture}
+
+\small График 2: прямоугольник в плоскости $(u,v)$
+\end{minipage}
+\end{center}
+
+\step{3}{Замена переменных и якобиан}
+Новые переменные: $u=y-x$ (номер прямой из семейства (1)--(2)), $v=y$ (номер горизонтали). Выражаем старые через новые:
+\[
+\begin{cases}x=v-u,\\ y=v,\end{cases}
+\qquad
+|J|=\left|\frac{\partial(x,y)}{\partial(u,v)}\right|=\left|\begin{vmatrix}x'_u&x'_v\\ y'_u&y'_v\end{vmatrix}\right|=\left|\begin{vmatrix}-1&1\\ 0&1\end{vmatrix}\right|=|-1|=1 .
+\]
+Граница: (1) $y=x\iff u=0$;\ \ (2) $y=x+a\iff u=a$;\ \ (3) $v=a$;\ \ (4) $v=3a$. Новая область --- прямоугольник $0\leqslant u\leqslant a$, $a\leqslant v\leqslant3a$.
+
+\emph{Проверка смысла $|J|=1$:} замена --- просто «сдвиг» строк, площади не меняются. Действительно, площадь параллелограмма $=$ основание $a$ $\times$ высота $2a=2a^2$, площадь прямоугольника $=a\cdot2a=2a^2$.
+
+\step{4}{Пределы по графику 2}
+Внешний: $a\leqslant v\leqslant 3a$; внутренний: $0\leqslant u\leqslant a$. Все пределы --- константы.
+
+\step{5}{Повторный интеграл и счёт}
+Подынтегральная функция: $x^2+y^2=(v-u)^2+v^2$.
+\[
+I=\int_a^{3a}dv\int_0^a\bigl((v-u)^2+v^2\bigr)\cdot 1\,du .
+\]
+Внутренний интеграл ($v$ --- константа):
+\[
+\int_0^a(v-u)^2du=\Bigl[-\frac{(v-u)^3}{3}\Bigr]_0^a=\frac{v^3-(v-a)^3}{3}=av^2-a^2v+\frac{a^3}{3},\qquad
+\int_0^a v^2\,du=av^2 .
+\]
+Сумма: $2av^2-a^2v+\dfrac{a^3}{3}$. Внешний интеграл:
+\[
+\begin{aligned}I&=\int_a^{3a}\Bigl(2av^2-a^2v+\frac{a^3}{3}\Bigr)dv
+=\frac{2a}{3}\bigl(27a^3-a^3\bigr)-\frac{a^2}{2}\bigl(9a^2-a^2\bigr)+\frac{a^3}{3}\cdot2a\\
+&=\frac{52a^4}{3}-4a^4+\frac{2a^4}{3}=18a^4-4a^4=14a^4 .\end{aligned}
+\]
+
+\begin{answerbox}
+I=14a^4
+\end{answerbox}
+
+\emph{Замечание.} Тот же счёт получается и без замены, в декартовых координатах: $I=\int_a^{3a}dy\int_{y-a}^{y}(x^2+y^2)\,dx$ (горизонталь входит через (2), выходит через (1)). Замена лишь делает пределы «прямоугольными».
+
+% ---------------------------------------------------------------
+\task{Вычислить $\displaystyle\iint_\Omega y^2\,dx\,dy$, если $\Omega$ ограничена осью абсцисс и первой аркой циклоиды $x=a(t-\sin t)$, $y=a(1-\cos t)$, $0\leqslant t\leqslant2\pi$.}
+
+\step{1}{Шапка}
+\begin{shapka}
+$\displaystyle I=\iint\limits_{\Omega_{xy}}y^2\,dx\,dy$
+\tcblower
+$\partial\Omega_{xy}:\quad
+\begin{array}{ll}
+y=0,\ 0\leqslant x\leqslant 2\pi a & (1)\\[1mm]
+\begin{cases}x=a(t-\sin t),\\ y=a(1-\cos t),\\ 0\leqslant t\leqslant2\pi\end{cases} & (2)
+\end{array}$\\[1mm] $a>0$
+\end{shapka}
+
+\step{2}{Два графика}
+Циклоида --- траектория точки обода колеса радиуса $a$, которое катится по оси $Ox$. Опорные точки: $t=0\colon(0,0)$;\ $t=\pi\colon(\pi a,2a)$ --- вершина арки;\ $t=2\pi\colon(2\pi a,0)$.
+Так как $x'(t)=a(1-\cos t)>0$ при $0<t<2\pi$, координата $x$ строго растёт вместе с $t$: каждому $t$ соответствует своя вертикаль $x=x(t)$, и эта вертикаль пересекает область по отрезку от $y=0$ до $y=a(1-\cos t)$.
+
+\textbf{Идея «выпрямления».} Параметр $t$ будет «номером вертикали», а вторая переменная $s\in[0,1]$ --- «долей высоты» на этой вертикали: $y=s\cdot a(1-\cos t)$. Тогда ось (1) --- это $s=0$, арка (2) --- это $s=1$, и область становится прямоугольником.
+
+\begin{center}
+\begin{minipage}[t]{0.49\linewidth}\centering
+\begin{tikzpicture}[xscale=0.62,yscale=1.05,>=Stealth]
+  \fill[reg] plot[domain=0:6.2832,samples=90,smooth] ({\x-sin(\x r)},{1-cos(\x r)}) -- cycle;
+  \draw[->] (-0.4,0)--(7.3,0) node[below]{$x$};
+  \draw[->] (0,-0.3)--(0,2.7) node[left]{$y$};
+  \draw[very thick,regline] plot[domain=0:6.2832,samples=90,smooth] ({\x-sin(\x r)},{1-cos(\x r)});
+  \draw[very thick,regline] (0,0)--(6.2832,0);
+  \draw[thick,hint] (1.3915,0)--(1.3915,1.5885);
+  \fill[hint] (1.3915,1.5885) circle(1.6pt);
+  \node[hint,above left] at (1.3915,1.5885) {\tiny $t$};
+  \draw[dashed,gray] (3.1416,0)--(3.1416,2);
+  \draw[dashed,gray] (0,2)--(3.1416,2);
+  \node[left] at (0,2) {\scriptsize $2a$};
+  \node[below] at (3.1416,0) {\scriptsize $\pi a$};
+  \node[below] at (6.2832,0) {\scriptsize $2\pi a$};
+  \node[above right] at (4.9,1.35) {\scriptsize (2)};
+  \node[above] at (4.6,0) {\scriptsize (1)};
+  \node at (3.1416,0.8) {$\Omega_{xy}$};
+\end{tikzpicture}
+
+\small График 1: под аркой циклоиды
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}\centering
+\begin{tikzpicture}[xscale=0.62,yscale=1.9,>=Stealth]
+  \fill[newreg] (0,0) rectangle (6.2832,1);
+  \draw[->] (-0.4,0)--(7.3,0) node[below]{$t$};
+  \draw[->] (0,-0.15)--(0,1.42) node[left]{$s$};
+  \draw[very thick,newline] (0,0) rectangle (6.2832,1);
+  \draw[very thick,hint] (2.2,0)--(2.2,1);
+  \node[below,hint] at (2.2,0) {\tiny $t$};
+  \node[below] at (6.2832,0) {\scriptsize $2\pi$};
+  \node[left] at (0,1) {\scriptsize $1$};
+  \node[above] at (4.4,1) {\scriptsize (2): $s=1$};
+  \node[below] at (4.4,0) {\scriptsize (1): $s=0$};
+  \node at (4.2,0.5) {$\Omega_{ts}$};
+\end{tikzpicture}
+
+\small График 2: прямоугольник в плоскости $(t,s)$
+\end{minipage}
+\end{center}
+Красный отрезок слева (вертикаль с номером $t$) переходит в красный отрезок справа. Боковые стороны $t=0$ и $t=2\pi$ прямоугольника сжимаются в точки $(0,0)$ и $(2\pi a,0)$ --- это линии нулевой площади, теореме это не мешает.
+
+\step{3}{Замена переменных и якобиан}
+\[
+\begin{cases}x=a(t-\sin t),\\ y=a\,s\,(1-\cos t),\end{cases}
+\qquad
+|J|=\left|\begin{vmatrix}x'_t&x'_s\\ y'_t&y'_s\end{vmatrix}\right|
+=\left|\begin{vmatrix}a(1-\cos t)&0\\ a s\sin t&a(1-\cos t)\end{vmatrix}\right|=a^2(1-\cos t)^2 .
+\]
+Матрица треугольная (так как $x$ не зависит от $s$), поэтому определитель --- произведение диагональных элементов. $J=0$ только при $t=0$ и $t=2\pi$, то есть на границе.
+
+\step{4}{Пределы по графику 2}
+$0\leqslant t\leqslant2\pi$,\quad $0\leqslant s\leqslant1$.
+
+\step{5}{Повторный интеграл и счёт}
+$y^2=a^2s^2(1-\cos t)^2$, поэтому
+\[
+I=\int_0^{2\pi}dt\int_0^1 a^2s^2(1-\cos t)^2\cdot a^2(1-\cos t)^2\,ds
+=a^4\int_0^{2\pi}(1-\cos t)^4dt\cdot\int_0^1s^2ds=\frac{a^4}{3}\int_0^{2\pi}(1-\cos t)^4dt .
+\]
+(Область --- прямоугольник, функция --- произведение, поэтому интеграл распался на произведение.)
+
+Раскрываем скобку по биному: $(1-\cos t)^4=1-4\cos t+6\cos^2t-4\cos^3t+\cos^4t$. По формулам из п.~6 теории:
+\[
+\int_0^{2\pi}(1-\cos t)^4dt=2\pi-4\cdot0+6\cdot\pi-4\cdot0+\frac{3\pi}{4}=\frac{35\pi}{4}.
+\]
+Итого $I=\dfrac{a^4}{3}\cdot\dfrac{35\pi}{4}=\dfrac{35\pi a^4}{12}$.
+
+\begin{answerbox}
+I=\dfrac{35\pi a^4}{12}
+\end{answerbox}
+
+\emph{Проверка другим путём.} В декартовых координатах: $I=\int_0^{2\pi a}dx\int_0^{y(x)}y^2dy=\frac13\int_0^{2\pi a}y^3(x)\,dx$. Подставляя $x=a(t-\sin t)$, $dx=a(1-\cos t)\,dt$, получаем $\frac13\int_0^{2\pi}a^3(1-\cos t)^3\cdot a(1-\cos t)\,dt$ --- тот же интеграл. \checkmark
+
+% ---------------------------------------------------------------
+\task{Перейти к полярным координатам $x=r\cos\varphi$, $y=r\sin\varphi$ и расставить пределы интегрирования в том и другом порядке в интеграле $\displaystyle\int_0^2dx\int_x^{x\sqrt3}f\bigl(\sqrt{x^2+y^2}\bigr)\,dy$.}
+
+\step{1}{Шапка}
+Сначала «читаем» область по пределам: внешний $0\leqslant x\leqslant2$, внутренний $x\leqslant y\leqslant x\sqrt3$.
+\begin{shapka}
+$\displaystyle I=\iint\limits_{\Omega_{xy}}f\bigl(\sqrt{x^2+y^2}\bigr)\,dx\,dy$
+\tcblower
+$\partial\Omega_{xy}:\quad
+\begin{array}{ll}
+y=x & (1)\\
+y=\sqrt3\,x & (2)\\
+x=2 & (3)
+\end{array}\qquad 0\leqslant x\leqslant 2$
+\end{shapka}
+
+\step{2}{Два графика}
+Область --- треугольник с вершинами $O(0,0)$, $A(2,2)$ ((1)$\cap$(3)), $B(2,2\sqrt3)$ ((2)$\cap$(3)). Прямые (1), (2) проходят через начало координат --- это лучи, а значит, в полярных координатах это просто $\varphi=\mathrm{const}$:
+(1) $\operatorname{tg}\varphi=1\Rightarrow\varphi=\frac\pi4$;\ \ (2) $\operatorname{tg}\varphi=\sqrt3\Rightarrow\varphi=\frac\pi3$;\ \ (3) $r\cos\varphi=2\Rightarrow r=\dfrac{2}{\cos\varphi}$.
+Расстояния: $|OA|=2\sqrt2$, $|OB|=4$.
+
+\begin{center}
+\begin{minipage}[t]{0.49\linewidth}\centering
+\begin{tikzpicture}[scale=0.95,>=Stealth]
+  \fill[reg] (0,0)--(2,2)--(2,3.4641)--cycle;
+  \draw[->] (-0.3,0)--(3.8,0) node[below]{$x$};
+  \draw[->] (0,-0.3)--(0,4.4) node[left]{$y$};
+  \draw[dashed,gray] (0,0)--(3.0,3.0) node[right,black]{\scriptsize (1) $\varphi=\frac\pi4$};
+  \draw[dashed,gray] (0,0)--(2.4,4.157) node[above,black]{\scriptsize (2) $\varphi=\frac\pi3$};
+  \draw[dashed,gray] (2,-0.2)--(2,4.3);
+  \node[right] at (2,0.35) {\scriptsize (3) $x=2$};
+  \draw[very thick,regline] (0,0)--(2,2)--(2,3.4641)--cycle;
+  \draw[thick,hint] (45:2.828) arc(45:60:2.828);
+  \draw[thick,hint,densely dotted] ({acos(2/3.4)}:3.4) arc({acos(2/3.4)}:60:3.4);
+  \draw[gray] (0,0) circle[radius=0pt];
+  \fill[regline] (2,2) circle(1.5pt) node[right]{\scriptsize $A(2,2)$};
+  \fill[regline] (2,3.4641) circle(1.5pt) node[right]{\scriptsize $B(2,2\sqrt3)$};
+  \node[below left] at (0,0) {\scriptsize $O$};
+  \draw[->,thick,hint] (0,0)--(52:2.45);
+  \node[hint] at (1.05,1.75) {\tiny луч};
+\end{tikzpicture}
+
+\small График 1: треугольник $OAB$. Сплошная красная дуга --- $r=2\sqrt2$, пунктирная --- некоторое $r\in(2\sqrt2,4)$
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}\centering
+\begin{tikzpicture}
+\begin{axis}[width=6.3cm,height=6.6cm,axis lines=left,xmin=0.70,xmax=1.13,ymin=0,ymax=4.7,
+  xtick={0.7854,1.0472},xticklabels={$\frac\pi4$,$\frac\pi3$},
+  ytick={2.828,3.4,4},yticklabels={$2\sqrt2$,$r$,$4$},
+  xlabel={$\varphi$},ylabel={$r$},ylabel style={rotate=-90},clip=false]
+  \addplot[name path=top,draw=none,domain=0.7854:1.0472,samples=40]{2/cos(deg(x))};
+  \addplot[name path=bot,draw=none,domain=0.7854:1.0472]{0};
+  \addplot[newreg] fill between[of=top and bot];
+  \addplot[very thick,newline,domain=0.7854:1.0472,samples=40]{2/cos(deg(x))};
+  \draw[very thick,newline] (axis cs:0.7854,0)--(axis cs:0.7854,2.828);
+  \draw[very thick,newline] (axis cs:1.0472,0)--(axis cs:1.0472,4);
+  \draw[very thick,newline] (axis cs:0.7854,0)--(axis cs:1.0472,0);
+  \draw[thick,hint] (axis cs:0.7854,2.828)--(axis cs:1.0472,2.828);
+  \draw[thick,hint,densely dotted] (axis cs:0.9419,3.4)--(axis cs:1.0472,3.4);
+  \draw[dashed,gray] (axis cs:0.70,3.4)--(axis cs:0.9419,3.4);
+  \draw[dashed,gray] (axis cs:0.70,2.828)--(axis cs:0.7854,2.828);
+  \draw[dashed,gray] (axis cs:0.70,4)--(axis cs:1.0472,4);
+  \node at (axis cs:0.916,1.4) {\small I};
+  \node at (axis cs:1.0,3.05) {\small II};
+  \node[anchor=west] at (axis cs:1.05,4.15) {\scriptsize (3) $r=\frac{2}{\cos\varphi}$};
+  \node[left] at (axis cs:0.7854,1.5) {\scriptsize (1)};
+  \node[right] at (axis cs:1.0472,1.5) {\scriptsize (2)};
+\end{axis}
+\end{tikzpicture}
+
+\small График 2: та же область в плоскости $(\varphi,r)$ (ось $\varphi$ показана не от нуля)
+\end{minipage}
+\end{center}
+
+\step{3}{Замена переменных и якобиан}
+\[
+\begin{cases}x=r\cos\varphi,\\ y=r\sin\varphi,\end{cases}\qquad |J|=r,\qquad f\bigl(\sqrt{x^2+y^2}\bigr)=f(r).
+\]
+
+\step{4}{Пределы по графику 2 --- в двух порядках}
+\textbf{Порядок «$\varphi$ внешний, $r$ внутренний».} Угол меняется от $\frac\pi4$ до $\frac\pi3$. Луч под углом $\varphi$ выходит из $O$ ($r=0$) и покидает треугольник на прямой (3), то есть при $r=\frac{2}{\cos\varphi}$. На графике 2 это вертикальный отрезок от оси до кривой (3).
+
+\textbf{Порядок «$r$ внешний, $\varphi$ внутренний».} Теперь смотрим на горизонтали графика 2 (это дуги окружностей $r=\mathrm{const}$ на графике 1). Радиус меняется от $0$ до $|OB|=4$. Но левая граница горизонтали меняется по-разному:
+\begin{itemize}
+\item при $0\leqslant r\leqslant2\sqrt2$ (часть I) дуга целиком лежит между лучами: $\frac\pi4\leqslant\varphi\leqslant\frac\pi3$;
+\item при $2\sqrt2\leqslant r\leqslant4$ (часть II) дуга начинается на прямой (3): $r\cos\varphi=2\Rightarrow\varphi=\arccos\frac2r$, и заканчивается на луче (2): $\varphi=\frac\pi3$.
+\end{itemize}
+Нижняя граница по $\varphi$ задаётся разными формулами --- по правилу 3) область режется на две части.
+
+\step{5}{Повторные интегралы}
+\[
+\boxed{\ I=\int_{\pi/4}^{\pi/3}d\varphi\int_0^{2/\cos\varphi}f(r)\,r\,dr\ }
+\]
+\[
+\boxed{\ I=\int_0^{2\sqrt2}r f(r)\,dr\int_{\pi/4}^{\pi/3}d\varphi\;+\;\int_{2\sqrt2}^{4}r f(r)\,dr\int_{\arccos(2/r)}^{\pi/3}d\varphi\ }
+\]
+Во втором порядке внутренние интегралы берутся сразу:
+\[
+I=\frac{\pi}{12}\int_0^{2\sqrt2}rf(r)\,dr+\int_{2\sqrt2}^4\Bigl(\frac\pi3-\arccos\frac2r\Bigr)rf(r)\,dr .
+\]
+
+\emph{Проверка при $f\equiv1$} (должна получиться площадь треугольника $S=\frac12\cdot|AB|\cdot2=\frac12(2\sqrt3-2)\cdot2=2\sqrt3-2$).
+Первый порядок: $\int_{\pi/4}^{\pi/3}\frac12\cdot\frac{4}{\cos^2\varphi}d\varphi=2\bigl(\operatorname{tg}\frac\pi3-\operatorname{tg}\frac\pi4\bigr)=2\sqrt3-2$. \checkmark\\
+Второй порядок: $\frac{\pi}{12}\cdot\frac{(2\sqrt2)^2}{2}+\frac\pi3\cdot\frac{16-8}{2}-\int_{2\sqrt2}^4r\arccos\frac2r\,dr=\frac\pi3+\frac{4\pi}{3}-\int_{2\sqrt2}^4r\arccos\frac2r\,dr$. По частям ($u=\arccos\frac2r$, $du=\frac{2\,dr}{r\sqrt{r^2-4}}$, $v=\frac{r^2}{2}$):
+$\int r\arccos\frac2r\,dr=\frac{r^2}{2}\arccos\frac2r-\sqrt{r^2-4}$, и от $2\sqrt2$ до $4$ это $\bigl(\frac{8\pi}{3}-2\sqrt3\bigr)-\bigl(\pi-2\bigr)=\frac{5\pi}{3}-2\sqrt3+2$. Итого $\frac{5\pi}{3}-\frac{5\pi}{3}+2\sqrt3-2=2\sqrt3-2$. \checkmark
+
+\begin{answerbox}
+I=\int_{\pi/4}^{\pi/3}d\varphi\int_0^{\frac{2}{\cos\varphi}}f(r)\,r\,dr\\
+I=\int_0^{2\sqrt2}r f(r)\,dr\int_{\pi/4}^{\pi/3}d\varphi+\int_{2\sqrt2}^{4}r f(r)\,dr\int_{\arccos\frac2r}^{\pi/3}d\varphi
+\end{answerbox}
+
+% ---------------------------------------------------------------
+\task{Переходя к полярным координатам, вычислить $\displaystyle\iint\limits_{\pi^2\leqslant x^2+y^2\leqslant4\pi^2}\sin\sqrt{x^2+y^2}\,dx\,dy$.}
+
+\step{1}{Шапка}
+\begin{shapka}
+$\displaystyle I=\iint\limits_{\Omega_{xy}}\sin\sqrt{x^2+y^2}\,dx\,dy$
+\tcblower
+$\partial\Omega_{xy}:\quad
+\begin{array}{ll}
+x^2+y^2=\pi^2 & (1)\\
+x^2+y^2=4\pi^2 & (2)
+\end{array}$\\[1mm] $\pi^2\leqslant x^2+y^2\leqslant4\pi^2$
+\end{shapka}
+
+\step{2}{Два графика}
+(1) --- окружность радиуса $\pi$, (2) --- окружность радиуса $2\pi$, обе с центром в $O$. Область --- кольцо между ними, симметричное относительно всех осей. В полярных координатах окружности --- это $r=\pi$ и $r=2\pi$, а угол пробегает полный оборот, поэтому кольцо «разрезается» по лучу $\varphi=0$ и распрямляется в прямоугольник.
+
+\begin{center}
+\begin{minipage}[t]{0.49\linewidth}\centering
+\begin{tikzpicture}[scale=0.34,>=Stealth]
+  \fill[reg,even odd rule] (0,0) circle(6.2832) (0,0) circle(3.1416);
+  \draw[very thick,regline] (0,0) circle(6.2832) (0,0) circle(3.1416);
+  \draw[->] (-7.6,0)--(7.9,0) node[below]{$x$};
+  \draw[->] (0,-7.6)--(0,7.9) node[left]{$y$};
+  \draw[->,very thick,hint] (40:3.1416)--(40:6.2832);
+  \draw[hint,dashed] (0,0)--(40:3.1416);
+  \node[below] at (3.5,0) {\scriptsize $\pi$};
+  \node[below] at (6.7,0) {\scriptsize $2\pi$};
+  \node at (135:2.2) {\scriptsize (1)};
+  \node at (135:7.0) {\scriptsize (2)};
+  \node at (-110:4.7) {$\Omega_{xy}$};
+\end{tikzpicture}
+
+\small График 1: кольцо $\pi\leqslant r\leqslant 2\pi$
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}\centering
+\begin{tikzpicture}[xscale=0.62,yscale=0.55,>=Stealth]
+  \fill[newreg] (0,3.1416) rectangle (6.2832,6.2832);
+  \draw[->] (-0.4,0)--(7.4,0) node[below]{$\varphi$};
+  \draw[->] (0,-0.3)--(0,7.6) node[left]{$r$};
+  \draw[very thick,newline] (0,3.1416) rectangle (6.2832,6.2832);
+  \draw[dashed,gray] (6.2832,0)--(6.2832,3.1416);
+  \node[below] at (6.2832,0) {\scriptsize $2\pi$};
+  \node[left] at (0,3.1416) {\scriptsize $\pi$};
+  \node[left] at (0,6.2832) {\scriptsize $2\pi$};
+  \node[above] at (3.1416,6.2832) {\scriptsize (2): $r=2\pi$};
+  \node[below] at (3.1416,3.1416) {\scriptsize (1): $r=\pi$};
+  \draw[->,very thick,hint] (0.698,3.1416)--(0.698,6.2832);
+  \node at (3.6,4.7) {$\Omega_{\varphi r}$};
+\end{tikzpicture}
+
+\small График 2: прямоугольник в плоскости $(\varphi,r)$
+\end{minipage}
+\end{center}
+
+\step{3}{Замена переменных и якобиан}
+\[
+\begin{cases}x=r\cos\varphi,\\ y=r\sin\varphi,\end{cases}\qquad |J|=r,\qquad \sin\sqrt{x^2+y^2}=\sin r .
+\]
+
+\step{4}{Пределы по графику 2}
+$0\leqslant\varphi\leqslant2\pi$;\quad $\pi\leqslant r\leqslant2\pi$.
+
+\step{5}{Повторный интеграл и счёт}
+\[
+I=\int_0^{2\pi}d\varphi\int_\pi^{2\pi}\sin r\cdot r\,dr=2\pi\int_\pi^{2\pi}r\sin r\,dr .
+\]
+По частям ($u=r$, $dv=\sin r\,dr$, $v=-\cos r$):
+\[
+\int_\pi^{2\pi}r\sin r\,dr=\bigl[-r\cos r+\sin r\bigr]_\pi^{2\pi}=(-2\pi\cdot1+0)-(-\pi\cdot(-1)+0)=-2\pi-\pi=-3\pi .
+\]
+Итого $I=2\pi\cdot(-3\pi)=-6\pi^2$.
+
+\begin{answerbox}
+I=-6\pi^2
+\end{answerbox}
+
+\emph{Проверка знака:} при $\pi<r<2\pi$ функция $\sin r<0$ во всём кольце, поэтому интеграл обязан быть отрицательным. \checkmark
+
+% ---------------------------------------------------------------
+\task{Произведя соответствующую замену переменных, свести двойной интеграл к однократному: $\displaystyle\iint_\Omega xy\,dx\,dy$, где $\Omega$ ограничена кривыми $xy=1$, $x+y=\frac52$.}
+
+\step{1}{Шапка}
+\begin{shapka}
+$\displaystyle I=\iint\limits_{\Omega_{xy}}xy\,dx\,dy$
+\tcblower
+$\partial\Omega_{xy}:\quad
+\begin{array}{ll}
+xy=1 & (1)\\
+x+y=\frac52 & (2)
+\end{array}\qquad x>0,\ y>0$
+\end{shapka}
+
+\step{2}{Два графика}
+Точки пересечения: из $xy=1$, $x+y=\frac52$ числа $x,y$ --- корни уравнения $t^2-\frac52t+1=0$, т.е. $t=2$ и $t=\frac12$. Получаем $A\bigl(\frac12,2\bigr)$, $B\bigl(2,\frac12\bigr)$. Область лежит выше гиперболы и ниже прямой: $xy\geqslant1$, $x+y\leqslant\frac52$ (пробная точка $(1{,}2;\,1{,}2)$: $1{,}44\geqslant1$, $2{,}4\leqslant2{,}5$ --- подходит).
+
+\textbf{Выбор замены.} Функция $xy$ и граница $xy=1$ подсказывают $u=xy$: гипербола станет прямой $u=1$, а функция --- просто $u$. Вторую переменную возьмём $v=\dfrac yx$ --- это «наклон луча» из начала координат. Линии $u=\mathrm{const}$ --- гиперболы, линии $v=\mathrm{const}$ --- лучи.
+
+Перепишем границу (2). Из $u=xy$, $v=y/x$: $x=\sqrt{u/v}$, $y=\sqrt{uv}$. Тогда
+$x+y=\sqrt u\Bigl(\frac1{\sqrt v}+\sqrt v\Bigr)=\sqrt u\,\frac{1+v}{\sqrt v}=\frac52\iff u=\dfrac{25v}{4(1+v)^2}$.
+Точка $A$: $u=1$, $v=4$; точка $B$: $u=1$, $v=\frac14$; середина дуги $x=y=\frac54$: $v=1$, $u=\frac{25}{16}$ --- максимум $u$.
+
+\begin{center}
+\begin{minipage}[t]{0.49\linewidth}\centering
+\begin{tikzpicture}
+\begin{axis}[width=6.6cm,height=6.6cm,axis lines=middle,xmin=0,xmax=2.9,ymin=0,ymax=2.9,
+  xtick={0.5,1,2},xticklabels={$\frac12$,$1$,$2$},ytick={0.5,1,2},yticklabels={$\frac12$,$1$,$2$},
+  xlabel={$x$},ylabel={$y$},clip=false,
+  every axis x label/.style={at={(axis description cs:1,0)},anchor=north},
+  every axis y label/.style={at={(axis description cs:0,1)},anchor=east}]
+  \addplot[name path=hyp,draw=none,domain=0.5:2,samples=60]{1/x};
+  \addplot[name path=lin,draw=none,domain=0.5:2]{2.5-x};
+  \addplot[reg] fill between[of=hyp and lin];
+  \addplot[very thick,regline,domain=0.36:2.8,samples=80]{1/x};
+  \addplot[very thick,regline,domain=0:2.5]{2.5-x};
+  \addplot[dashed,gray,domain=0:2.8]{x/4};
+  \addplot[dashed,gray,domain=0:2.4]{x};
+  \addplot[dashed,gray,domain=0:0.7]{4*x};
+  \node[right] at (axis cs:2.8,0.36) {\scriptsize (1)};
+  \node[right] at (axis cs:2.5,0.0) {};
+  \node[above right] at (axis cs:2.1,0.4) {};
+  \node[right] at (axis cs:2.4,2.4) {\scriptsize $v=1$};
+  \node[above] at (axis cs:0.7,2.8) {\scriptsize $v=4$};
+  \node[right] at (axis cs:2.8,0.7) {\scriptsize $v=\frac14$};
+  \node[above right] at (axis cs:1.6,0.9) {\scriptsize (2)};
+  \fill[regline] (axis cs:0.5,2) circle(1.5pt) node[right]{\scriptsize $A$};
+  \fill[regline] (axis cs:2,0.5) circle(1.5pt) node[above]{\scriptsize $B$};
+  \node at (axis cs:1.2,1.15) {\scriptsize $\Omega_{xy}$};
+\end{axis}
+\end{tikzpicture}
+
+\small График 1: между гиперболой (1) и прямой (2)
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}\centering
+\begin{tikzpicture}
+\begin{axis}[width=6.6cm,height=6.0cm,axis lines=left,xmin=0,xmax=4.5,ymin=0.85,ymax=1.75,
+  xtick={0.25,1,4},xticklabels={$\frac14$,$1$,$4$},ytick={1,1.5625},yticklabels={$1$,$\frac{25}{16}$},
+  xlabel={$v$},ylabel={$u$},ylabel style={rotate=-90},clip=false]
+  \addplot[name path=cur,draw=none,domain=0.25:4,samples=80]{25*x/(4*(1+x)^2)};
+  \addplot[name path=one,draw=none,domain=0.25:4]{1};
+  \addplot[newreg] fill between[of=cur and one];
+  \addplot[very thick,newline,domain=0.25:4,samples=80]{25*x/(4*(1+x)^2)};
+  \addplot[very thick,newline,domain=0.25:4]{1};
+  \draw[<->,thick,hint] (axis cs:0.4186,1.3)--(axis cs:2.389,1.3);
+  \draw[dashed,gray] (axis cs:0,1.3)--(axis cs:0.4186,1.3);
+  \node[left,hint] at (axis cs:0,1.3) {\scriptsize $u$};
+  \node[below,hint] at (axis cs:0.55,1.3) {\tiny $v_1$};
+  \node[below,hint] at (axis cs:2.3,1.3) {\tiny $v_2$};
+  \draw[dashed,gray] (axis cs:0,1.5625)--(axis cs:1,1.5625);
+  \node[below] at (axis cs:2.4,1.0) {\scriptsize (1): $u=1$};
+  \node[above right] at (axis cs:1.8,1.47) {\scriptsize (2): $u=\frac{25v}{4(1+v)^2}$};
+  \node at (axis cs:1.1,1.15) {\scriptsize $\Omega_{vu}$};
+\end{axis}
+\end{tikzpicture}
+
+\small График 2: та же область в плоскости $(v,u)$
+\end{minipage}
+\end{center}
+Новая область --- не прямоугольник, но это не страшно: подынтегральная функция зависит \emph{только от $u$}. Если сделать $u$ внешней переменной, внутренний интеграл по $v$ возьмётся сразу --- и двойной интеграл станет однократным. Именно этого и требует задача.
+
+\step{3}{Замена переменных и якобиан}
+Здесь проще посчитать якобиан обратной замены (свойство (а)):
+\[
+\begin{cases}u=xy,\\ v=\dfrac yx\end{cases}\iff
+\begin{cases}x=\sqrt{u/v},\\ y=\sqrt{uv},\end{cases}
+\qquad
+\frac{\partial(u,v)}{\partial(x,y)}=\begin{vmatrix}y&x\\ -\dfrac{y}{x^2}&\dfrac1x\end{vmatrix}=\frac yx+\frac yx=2v,
+\qquad |J|=\frac{1}{2v}.
+\]
+В первой четверти замена взаимно однозначна (по $u$ и $v$ точка восстанавливается однозначно), $J\ne0$.
+
+\step{4}{Пределы по графику 2}
+Внешний: $1\leqslant u\leqslant\frac{25}{16}$. Внутренний: горизонталь $u=\mathrm{const}$ входит в область на левой ветви кривой (2) и выходит на правой: $v_1(u)\leqslant v\leqslant v_2(u)$.
+
+Найдём $v_{1,2}$. На прямой (2) при $xy=u$ числа $x,y$ --- корни $t^2-\frac52t+u=0$:
+$t=\dfrac{5\pm w}{4}$, где $w=\sqrt{25-16u}$. Меньшее $v=y/x$ получается при $y=\frac{5-w}{4}$, $x=\frac{5+w}{4}$:
+\[
+v_1=\frac{5-w}{5+w},\qquad v_2=\frac{5+w}{5-w},\qquad w=\sqrt{25-16u}.
+\]
+(Проверка: при $u=1$ $w=3$, $v_1=\frac14$, $v_2=4$ --- это точки $B$ и $A$. \checkmark)
+
+\step{5}{Повторный интеграл, сведение к однократному и счёт}
+\[
+I=\int_1^{25/16}du\int_{v_1(u)}^{v_2(u)}u\cdot\frac{1}{2v}\,dv=\int_1^{25/16}\frac u2\ln\frac{v_2}{v_1}\,du .
+\]
+Так как $\dfrac{v_2}{v_1}=\Bigl(\dfrac{5+w}{5-w}\Bigr)^2$, то $\dfrac12\ln\dfrac{v_2}{v_1}=\ln\dfrac{5+w}{5-w}$, и
+\[
+\boxed{\ I=\int_1^{25/16}u\,\ln\frac{5+\sqrt{25-16u}}{5-\sqrt{25-16u}}\,du\ }
+\]
+--- это и есть искомый однократный интеграл.
+
+\textbf{Досчитаем до числа.} Замена $w=\sqrt{25-16u}$: $u=\frac{25-w^2}{16}$, $du=-\frac w8dw$; $u=1\to w=3$, $u=\frac{25}{16}\to w=0$:
+\[
+I=\frac1{128}\int_0^3 w(25-w^2)\ln\frac{5+w}{5-w}\,dw .
+\]
+По частям: $g=\ln\frac{5+w}{5-w}$, $g'=\frac1{5+w}+\frac1{5-w}=\frac{10}{25-w^2}$; $dF=w(25-w^2)dw$, $F=-\frac{(25-w^2)^2}{4}$:
+\[
+\begin{aligned}\int_0^3 w(25-w^2)g\,dw&=\Bigl[-\frac{(25-w^2)^2}{4}g\Bigr]_0^3+\int_0^3\frac{(25-w^2)^2}{4}\cdot\frac{10}{25-w^2}dw\\
+&=-\frac{256}{4}\ln4+\frac52\int_0^3(25-w^2)\,dw=-128\ln2+165 .\end{aligned}
+\]
+Значит, $I=\dfrac{165}{128}-\ln2\approx0{,}5959$.
+
+\begin{answerbox}
+ I=\int_1^{25/16}u\ln\frac{5+\sqrt{25-16u}}{5-\sqrt{25-16u}}\,du=\frac{165}{128}-\ln2\approx0{,}596
+\end{answerbox}
+
+\emph{Проверка в декартовых координатах:} $\int_{1/2}^2x\,dx\int_{1/x}^{5/2-x}y\,dy=\frac12\int_{1/2}^2\Bigl(x\bigl(\tfrac52-x\bigr)^2-\frac1x\Bigr)dx=\frac12\Bigl(\frac{165}{64}-2\ln2\Bigr)=\frac{165}{128}-\ln2$. \checkmark

@@ -1,0 +1,103 @@
+% ---------------------------------------------------------------
+%  Преамбула: пакеты, цвета, оформление шагов алгоритма
+% ---------------------------------------------------------------
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage[a4paper,margin=2cm]{geometry}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta,calc,patterns,decorations.pathreplacing}
+\usepgfplotslibrary{fillbetween}
+\usepackage[most]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{booktabs,array}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt plus 1pt}
+\setlist{itemsep=2pt,topsep=3pt}
+\allowdisplaybreaks
+
+% ---------- цвета ----------
+\colorlet{reg}{blue!18}       % заливка области
+\colorlet{regline}{blue!60!black}
+\colorlet{newreg}{green!20}   % заливка новой области
+\colorlet{newline}{green!40!black}
+\colorlet{hint}{red!70!black}
+
+% ---------- рамки для теории ----------
+\newtcolorbox{defbox}[1][]{enhanced,breakable,colback=blue!3,colframe=blue!50!black,
+  fonttitle=\bfseries,title={Определение#1}}
+\newtcolorbox{thmbox}[1][]{enhanced,breakable,colback=green!3,colframe=green!35!black,
+  fonttitle=\bfseries,title={Теорема#1}}
+\newtcolorbox{notebox}[1][Важно]{enhanced,breakable,colback=orange!5,colframe=orange!70!black,
+  fonttitle=\bfseries,title={#1}}
+\newtcolorbox{answerbox}{enhanced,colback=red!3,colframe=red!55!black,
+  fonttitle=\bfseries,title={Ответ},width=0.86\linewidth,center,ams gather*}
+
+% ---------- шапка задачи: слева интеграл, справа граница ----------
+\newtcolorbox{shapka}{enhanced,sidebyside,sidebyside align=center,
+  lefthand width=0.44\linewidth,colback=gray!4,colframe=gray!55!black,
+  segmentation style={solid,gray!55!black}}
+
+% ---------- шаги алгоритма ----------
+\newcommand{\step}[2]{\par\medskip\noindent
+  {\large\bfseries\color{blue!45!black}Шаг #1.\ #2}\par\nopagebreak\smallskip}
+
+% ---------- задачи ----------
+\newcounter{task}
+\newcommand{\task}[1]{\ifnum\value{task}>0 \clearpage\fi\stepcounter{task}%
+  \phantomsection\addcontentsline{toc}{section}{Задача \thetask}%
+  {\Large\bfseries Задача \thetask}\par\smallskip
+  \begin{tcolorbox}[colback=yellow!6,colframe=yellow!45!black,boxrule=0.5pt]#1\end{tcolorbox}}
+
+% ---------- 3D-коробка (график 2 для тройных интегралов) ----------
+% \BoxPic{ось1}{ось2}{ось3}{метка1}{метка2}{метка3} : параллелепипед [0,м1]x[0,м2]x[0,м3]
+\newcommand{\BoxPic}[6]{%
+\begin{tikzpicture}[x={(-0.55cm,-0.45cm)},y={(1.25cm,0cm)},z={(0cm,1.25cm)},>=Stealth,scale=1.15]
+  \fill[newreg!80] (1.6,0,0)--(1.6,1.9,0)--(1.6,1.9,1.5)--(1.6,0,1.5)--cycle;
+  \fill[newreg!110] (0,0,1.5)--(1.6,0,1.5)--(1.6,1.9,1.5)--(0,1.9,1.5)--cycle;
+  \fill[newreg!55] (0,1.9,0)--(1.6,1.9,0)--(1.6,1.9,1.5)--(0,1.9,1.5)--cycle;
+  \draw[->] (0,0,0)--(2.5,0,0) node[below left]{$#1$};
+  \draw[->] (0,0,0)--(0,2.6,0) node[right]{$#2$};
+  \draw[->] (0,0,0)--(0,0,2.2) node[above]{$#3$};
+  \draw[thick,newline] (1.6,0,0)--(1.6,1.9,0)--(1.6,1.9,1.5)--(1.6,0,1.5)--cycle;
+  \draw[thick,newline] (1.6,0,1.5)--(0,0,1.5)--(0,1.9,1.5)--(1.6,1.9,1.5);
+  \draw[thick,newline] (1.6,1.9,0)--(0,1.9,0)--(0,1.9,1.5);
+  \draw[thick,newline] (0,0,0)--(1.6,0,0) (0,0,0)--(0,1.9,0) (0,0,0)--(0,0,1.5);
+  \node[left=1pt] at (1.6,0,0) {\small $#4$};
+  \node[below=1pt] at (0,1.9,0) {\small $#5$};
+  \node[left=1pt] at (0,0,1.5) {\small $#6$};
+  \node[left=1pt,below=1pt] at (0,0,0) {\small $0$};
+\end{tikzpicture}}
+
+% стиль 3D-осей pgfplots
+\pgfplotsset{
+  my3d/.style={view={125}{24},axis lines=none,width=7.6cm,height=7.6cm,
+    clip=false,colormap={bluish}{rgb255=(215,226,250) rgb255=(120,150,215)},
+    every axis plot/.append style={line join=round}},
+}
+
+% \BoxPicG{ось1}{ось2}{ось3}{м1-}{м1+}{м2-}{м2+}{м3+} : параллелепипед [м1-,м1+]x[м2-,м2+]x[0,м3+]
+\newcommand{\BoxPicG}[8]{%
+\begin{tikzpicture}[x={(-0.55cm,-0.45cm)},y={(1.25cm,0cm)},z={(0cm,1.25cm)},>=Stealth,scale=1.15]
+  \fill[newreg!80] (2.0,0.6,0)--(2.0,2.2,0)--(2.0,2.2,1.5)--(2.0,0.6,1.5)--cycle;
+  \fill[newreg!110] (0.6,0.6,1.5)--(2.0,0.6,1.5)--(2.0,2.2,1.5)--(0.6,2.2,1.5)--cycle;
+  \fill[newreg!55] (0.6,2.2,0)--(2.0,2.2,0)--(2.0,2.2,1.5)--(0.6,2.2,1.5)--cycle;
+  \draw[->] (0,0,0)--(2.7,0,0) node[below left]{$#1$};
+  \draw[->] (0,0,0)--(0,2.8,0) node[right]{$#2$};
+  \draw[->] (0,0,0)--(0,0,2.2) node[above]{$#3$};
+  \draw[dashed,newline] (0.6,0.6,0)--(2.0,0.6,0) (0.6,0.6,0)--(0.6,2.2,0) (0.6,0.6,0)--(0.6,0.6,1.5);
+  \draw[thick,newline] (2.0,0.6,0)--(2.0,2.2,0)--(2.0,2.2,1.5)--(2.0,0.6,1.5)--cycle;
+  \draw[thick,newline] (2.0,0.6,1.5)--(0.6,0.6,1.5)--(0.6,2.2,1.5)--(2.0,2.2,1.5);
+  \draw[thick,newline] (2.0,2.2,0)--(0.6,2.2,0)--(0.6,2.2,1.5);
+  \draw[dotted,gray] (0.6,0,0)--(0.6,0.6,0) (2.0,0,0)--(2.0,0.6,0) (0,0.6,0)--(0.6,0.6,0) (0,2.2,0)--(0.6,2.2,0) (0,0,1.5)--(0.6,0.6,1.5);
+  \node[left=1pt] at (0.6,0,0) {\small $#4$};
+  \node[left=1pt] at (2.0,0,0) {\small $#5$};
+  \node[below=1pt] at (0,0.6,0) {\small $#6$};
+  \node[below=1pt] at (0,2.2,0) {\small $#7$};
+  \node[left=1pt] at (0,0,1.5) {\small $#8$};
+\end{tikzpicture}}

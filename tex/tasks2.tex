@@ -1,0 +1,389 @@
+% ===============================================================
+%  Задачи 6-10 (тройные интегралы и объёмы)
+% ===============================================================
+
+% ---------------------------------------------------------------
+\task{Вычислить $\displaystyle\iiint_V xy^2z^3\,dx\,dy\,dz$, где область $V$ ограничена поверхностями $z=xy$, $y=x$, $x=1$, $z=0$.}
+
+\step{1}{Шапка}
+\begin{shapka}
+$\displaystyle I=\iiint\limits_{V}xy^2z^3\,dx\,dy\,dz$
+\tcblower
+$\partial V:\quad
+\begin{array}{ll}
+z=xy & (1)\\
+y=x & (2)\\
+x=1 & (3)\\
+z=0 & (4)
+\end{array}$
+\end{shapka}
+
+\step{2}{Два графика}
+(2) и (3) не содержат $z$ --- это вертикальные плоскости («стенки»). (4) --- плоскость $Oxy$ («пол»). (1) --- гиперболический параболоид («седло»), он будет «крышей»; тело лежит под ним и над полом, значит, нужно $xy\geqslant0$.
+
+\textbf{Проекция на $Oxy$.} Её ограничивают следы стенок $y=x$, $x=1$ и линия, где крыша встречается с полом: $xy=0$, т.е. ось $y=0$ (вторую возможность $x=0$ отбрасываем: вместе с $y=x$ и $x=1$ она не даёт ограниченной области). Получаем треугольник
+$D:\ 0\leqslant x\leqslant1,\ \ 0\leqslant y\leqslant x$, а над каждой точкой $D$ тело занимает отрезок $0\leqslant z\leqslant xy$.
+
+\textbf{Идея выпрямления} (см.\ «треугольные замены» в теории): $y$ меняется от $0$ до $x$ --- положим $y=x\cdot v$, $v\in[0,1]$; $z$ меняется от $0$ до $xy$ --- положим $z=xy\cdot w$, $w\in[0,1]$. Тело превратится в единичный куб.
+
+\begin{center}
+\begin{minipage}[t]{0.49\linewidth}\centering
+\figSix
+
+\small График 1: тело в $(x,y,z)$; вершины основания $(0,0,0)$, $(1,0,0)$, $(1,1,0)$, верхняя точка $(1,1,1)$
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}\centering
+\BoxPic{u}{v}{w}{1}{1}{1}
+
+\small График 2: единичный куб в $(u,v,w)$
+\end{minipage}
+\end{center}
+
+\step{3}{Замена переменных и якобиан}
+\[
+\begin{cases}x=u,\\ y=uv,\\ z=u^2vw,\end{cases}
+\qquad
+|J|=\left|\begin{vmatrix}1&0&0\\ v&u&0\\ 2uvw&u^2w&u^2v\end{vmatrix}\right|=1\cdot u\cdot u^2v=u^3v .
+\]
+Матрица треугольная --- определитель равен произведению диагонали. Граница: (3) $x=1\iff u=1$;\ (2) $y=x\iff v=1$;\ (1) $z=xy\iff w=1$;\ (4) $z=0\iff w=0$;\ ось $y=0\iff v=0$; грань $u=0$ стягивается в точку $O$.
+
+\step{4}{Пределы по графику 2}
+$0\leqslant u\leqslant1$,\quad $0\leqslant v\leqslant1$,\quad $0\leqslant w\leqslant1$.
+
+\step{5}{Повторный интеграл и счёт}
+Подынтегральная функция: $xy^2z^3=u\cdot u^2v^2\cdot u^6v^3w^3=u^9v^5w^3$. Умножаем на $|J|=u^3v$:
+\[
+I=\int_0^1du\int_0^1dv\int_0^1u^{12}v^6w^3\,dw=\int_0^1u^{12}du\cdot\int_0^1v^6dv\cdot\int_0^1w^3dw=\frac1{13}\cdot\frac17\cdot\frac14=\frac1{364}.
+\]
+
+\begin{answerbox}
+I=\frac{1}{364}
+\end{answerbox}
+
+\emph{Проверка в декартовых координатах} («проекция $+$ отрезок»):
+\[
+\int_0^1dx\int_0^xdy\int_0^{xy}xy^2z^3dz=\int_0^1dx\int_0^x xy^2\frac{x^4y^4}{4}dy=\frac14\int_0^1x^5\frac{x^7}{7}dx=\frac1{28}\cdot\frac1{13}=\frac1{364}.\ \checkmark
+\]
+
+% ---------------------------------------------------------------
+\task{Вычислить $\displaystyle\iiint_V xyz\,dx\,dy\,dz$, где область $V$ ограничена поверхностями $x^2+y^2+z^2=1$, $x=0$, $y=0$, $z=0$.}
+
+\step{1}{Шапка}
+\begin{shapka}
+$\displaystyle I=\iiint\limits_{V}xyz\,dx\,dy\,dz$
+\tcblower
+$\partial V:\quad
+\begin{array}{ll}
+x^2+y^2+z^2=1 & (1)\\
+x=0 & (2)\\
+y=0 & (3)\\
+z=0 & (4)
+\end{array}$\\[1mm] $x,y,z\geqslant0$
+\end{shapka}
+
+\step{2}{Два графика}
+(1) --- сфера радиуса $1$ с центром в $O$; (2)--(4) --- координатные плоскости. Они режут шар на 8 одинаковых частей; стандартно имеется в виду часть в первом октанте ($x,y,z\geqslant0$) --- $\frac18$ шара.
+\emph{(В других октантах ответ отличался бы только знаком: там, где нечётное число координат отрицательно, $xyz<0$.)}
+
+Форма --- кусок шара, поэтому берём сферические координаты: сфера (1) станет $r=1$, плоскости --- $\varphi=0$, $\varphi=\frac\pi2$, $\psi=0$. Тело распрямляется в параллелепипед.
+
+\begin{center}
+\begin{minipage}[t]{0.49\linewidth}\centering
+\figSeven
+
+\small График 1: $\frac18$ единичного шара
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}\centering
+\BoxPic{\varphi}{\psi}{r}{\frac\pi2}{\frac\pi2}{1}
+
+\small График 2: параллелепипед в $(\varphi,\psi,r)$
+\end{minipage}
+\end{center}
+
+\step{3}{Замена переменных и якобиан}
+\[
+\begin{cases}x=r\cos\psi\cos\varphi,\\ y=r\cos\psi\sin\varphi,\\ z=r\sin\psi,\end{cases}\qquad |J|=r^2\cos\psi .
+\]
+Граница: (1) $r=1$;\ (3) $y=0\iff\varphi=0$;\ (2) $x=0\iff\varphi=\frac\pi2$;\ (4) $z=0\iff\psi=0$ (значение $\psi=\frac\pi2$ --- это ось $Oz$, линия).
+
+\step{4}{Пределы по графику 2}
+Сначала углы: $0\leqslant\varphi\leqslant\frac\pi2$,\quad $0\leqslant\psi\leqslant\frac\pi2$; затем радиус: $0\leqslant r\leqslant1$.
+
+\step{5}{Повторный интеграл и счёт}
+$xyz=r^3\cos^2\psi\sin\psi\cos\varphi\sin\varphi$; умножаем на $|J|=r^2\cos\psi$:
+\[
+\begin{aligned}I&=\int_0^{\pi/2}d\varphi\int_0^{\pi/2}d\psi\int_0^1 r^5\cos^3\psi\sin\psi\,\sin\varphi\cos\varphi\,dr\\
+&=\int_0^{\pi/2}\sin\varphi\cos\varphi\,d\varphi\cdot\int_0^{\pi/2}\cos^3\psi\sin\psi\,d\psi\cdot\int_0^1r^5dr .\end{aligned}
+\]
+Каждый множитель:
+\[
+\int_0^{\pi/2}\sin\varphi\cos\varphi\,d\varphi=\Bigl[\frac{\sin^2\varphi}{2}\Bigr]_0^{\pi/2}=\frac12,\qquad
+\int_0^{\pi/2}\cos^3\psi\sin\psi\,d\psi=\Bigl[-\frac{\cos^4\psi}{4}\Bigr]_0^{\pi/2}=\frac14,\qquad
+\int_0^1r^5dr=\frac16.
+\]
+\[
+I=\frac12\cdot\frac14\cdot\frac16=\frac1{48}.
+\]
+
+\begin{answerbox}
+I=\frac{1}{48}
+\end{answerbox}
+
+\emph{Проверка в декартовых координатах:}
+\[
+\begin{aligned}\int_0^1x\,dx\int_0^{\sqrt{1-x^2}}y\,dy\int_0^{\sqrt{1-x^2-y^2}}z\,dz&=\int_0^1x\,dx\int_0^{\sqrt{1-x^2}}y\,\frac{1-x^2-y^2}{2}\,dy\\
+&=\int_0^1x\,\frac{(1-x^2)^2}{8}\,dx=\frac18\cdot\frac16=\frac1{48}.\ \checkmark\end{aligned}
+\]
+
+% ---------------------------------------------------------------
+\task{Вычислить $\displaystyle\iiint_V x^2\,dx\,dy\,dz$, где $V$ ограничена поверхностями $z=ay^2$, $z=by^2$, $y>0$ $(0<a<b)$, $z=\alpha x$, $z=\beta x$ $(0<\alpha<\beta)$, $z=h$ $(h>0)$.}
+
+\step{1}{Шапка}
+\begin{shapka}
+$\displaystyle I=\iiint\limits_{V}x^2\,dx\,dy\,dz$
+\tcblower
+$\partial V:\quad
+\begin{array}{ll}
+z=ay^2 & (1)\\
+z=by^2 & (2)\\
+z=\alpha x & (3)\\
+z=\beta x & (4)\\
+z=h & (5)
+\end{array}\qquad
+\begin{array}{l}y>0,\\ 0<a<b,\\ 0<\alpha<\beta,\\ h>0\end{array}$
+\end{shapka}
+
+\step{2}{Два графика}
+(1), (2) --- параболические цилиндры (в уравнениях нет $x$, образующие параллельны $Ox$), берём их ветви с $y>0$. (3), (4) --- плоскости, проходящие через ось $Oy$. (5) --- горизонтальная плоскость, «крышка».
+
+Посмотрим на \textbf{сечение} плоскостью $z=\mathrm{const}\in(0,h]$:
+между цилиндрами $\sqrt{z/b}\leqslant y\leqslant\sqrt{z/a}$, между плоскостями $z/\beta\leqslant x\leqslant z/\alpha$. Сечение --- прямоугольник, который при $z\to0$ стягивается в точку $O$. Тело --- «криволинейная пирамида» с вершиной в начале координат и основанием-прямоугольником на высоте $h$.
+
+\textbf{Идея замены.} Каждая пара граней --- это семейство $z/y^2=\mathrm{const}$ и семейство $z/x=\mathrm{const}$. Значит, положим
+$u=\dfrac{z}{y^2}$ (грани (1), (2) $\to u=a$, $u=b$), $v=\dfrac zx$ (грани (3), (4) $\to v=\alpha$, $v=\beta$), $w=z$ (крышка (5) $\to w=h$).
+
+\begin{center}
+\begin{minipage}[t]{0.49\linewidth}\centering
+\figEight
+
+\small График 1: тело при $a=1$, $b=4$, $\alpha=1$, $\beta=2$, $h=1$ --- «пирамида» с вершиной $O$
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}\centering
+\BoxPicG{u}{v}{w}{a}{b}{\alpha}{\beta}{h}
+
+\small График 2: параллелепипед $[a,b]\times[\alpha,\beta]\times[0,h]$ в $(u,v,w)$
+\end{minipage}
+\end{center}
+
+\step{3}{Замена переменных и якобиан}
+Выражаем старые переменные: $z=w$, $x=\dfrac zv=\dfrac wv$, $y=\sqrt{\dfrac zu}=\sqrt{\dfrac wu}$ (так как $y>0$).
+\[
+\begin{cases}x=\dfrac wv,\\[2mm] y=\sqrt{\dfrac wu},\\[2mm] z=w,\end{cases}
+\qquad
+J=\begin{vmatrix}0&-\dfrac{w}{v^2}&\dfrac1v\\[2mm] -\dfrac{\sqrt w}{2u^{3/2}}&0&\dfrac{1}{2\sqrt{uw}}\\[2mm] 0&0&1\end{vmatrix}
+=1\cdot\Bigl(0\cdot0-\Bigl(-\frac{w}{v^2}\Bigr)\Bigl(-\frac{\sqrt w}{2u^{3/2}}\Bigr)\Bigr)=-\frac{w^{3/2}}{2u^{3/2}v^2},
+\]
+\[
+|J|=\frac{w^{3/2}}{2\,u^{3/2}v^2}.
+\]
+(Определитель разложен по третьей строке $(0,0,1)$.)
+
+\step{4}{Пределы по графику 2}
+$a\leqslant u\leqslant b$,\quad $\alpha\leqslant v\leqslant\beta$,\quad $0\leqslant w\leqslant h$ --- все пределы постоянные.
+
+\step{5}{Повторный интеграл и счёт}
+$x^2\cdot|J|=\dfrac{w^2}{v^2}\cdot\dfrac{w^{3/2}}{2u^{3/2}v^2}=\dfrac12\,u^{-3/2}\,v^{-4}\,w^{7/2}$ --- произведение функций от каждой переменной, поэтому
+\[
+I=\frac12\int_a^b u^{-3/2}du\cdot\int_\alpha^\beta v^{-4}dv\cdot\int_0^h w^{7/2}dw .
+\]
+\[
+\int_a^bu^{-3/2}du=\Bigl[-\frac{2}{\sqrt u}\Bigr]_a^b=2\Bigl(\frac1{\sqrt a}-\frac1{\sqrt b}\Bigr),\qquad
+\int_\alpha^\beta v^{-4}dv=\Bigl[-\frac1{3v^3}\Bigr]_\alpha^\beta=\frac13\Bigl(\frac1{\alpha^3}-\frac1{\beta^3}\Bigr),
+\]
+\[
+\int_0^hw^{7/2}dw=\Bigl[\frac{2}{9}w^{9/2}\Bigr]_0^h=\frac29h^{9/2}.
+\]
+\[
+I=\frac12\cdot2\cdot\frac13\cdot\frac29\Bigl(\frac1{\sqrt a}-\frac1{\sqrt b}\Bigr)\Bigl(\frac1{\alpha^3}-\frac1{\beta^3}\Bigr)h^{9/2}
+=\frac{2}{27}\cdot\frac{\sqrt b-\sqrt a}{\sqrt{ab}}\cdot\frac{\beta^3-\alpha^3}{\alpha^3\beta^3}\cdot h^4\sqrt h .
+\]
+
+\begin{answerbox}
+I=\frac{2}{27}\,\frac{(\sqrt b-\sqrt a)(\beta^3-\alpha^3)}{\sqrt{ab}\;\alpha^3\beta^3}\,h^4\sqrt h
+\end{answerbox}
+
+\emph{Проверка методом сечений.} Сечение $z=\mathrm{const}$ --- прямоугольник, поэтому
+\[
+\iint_{D(z)}x^2\,dx\,dy=\int_{z/\beta}^{z/\alpha}x^2dx\cdot\int_{\sqrt{z/b}}^{\sqrt{z/a}}dy=\frac{z^3}{3}\Bigl(\frac1{\alpha^3}-\frac1{\beta^3}\Bigr)\cdot\sqrt z\Bigl(\frac1{\sqrt a}-\frac1{\sqrt b}\Bigr),
+\]
+и $\int_0^h\frac{z^{7/2}}{3}dz=\frac{2}{27}h^{9/2}$ --- тот же ответ. \checkmark
+
+% ---------------------------------------------------------------
+\task{Найти объём тела, ограниченного поверхностями $z=x^2+y^2$, $z=2x^2+2y^2$, $y=x$, $y=x^2$.}
+
+\step{1}{Шапка}
+\begin{shapka}
+$\displaystyle V=\iiint\limits_{V}dx\,dy\,dz$
+\tcblower
+$\partial V:\quad
+\begin{array}{ll}
+z=x^2+y^2 & (1)\\
+z=2x^2+2y^2 & (2)\\
+y=x & (3)\\
+y=x^2 & (4)
+\end{array}$
+\end{shapka}
+
+\step{2}{Два графика}
+(1), (2) --- параболоиды вращения с вершиной в $O$; так как $2(x^2+y^2)\geqslant x^2+y^2$, параболоид (2) везде выше: (1) --- пол, (2) --- крыша. (3), (4) не содержат $z$ --- это стенки, они вырезают проекцию $D$.
+Пересечение стенок: $x^2=x\Rightarrow x=0,\ x=1$. Значит, $D:\ 0\leqslant x\leqslant1,\ x^2\leqslant y\leqslant x$.
+
+Поскольку в уравнениях параболоидов стоит $x^2+y^2$, берём \textbf{цилиндрические координаты}: (1) $z=r^2$, (2) $z=2r^2$, (3) $\operatorname{tg}\varphi=1\Rightarrow\varphi=\frac\pi4$, (4) $r\sin\varphi=r^2\cos^2\varphi\Rightarrow r=\dfrac{\sin\varphi}{\cos^2\varphi}$.
+В $D$ имеем $0\leqslant y\leqslant x$, т.е. $0\leqslant\varphi\leqslant\frac\pi4$. Луч под углом $\varphi$ выходит из $O$ и покидает $D$ на параболе (4).
+
+\begin{center}
+\begin{minipage}[t]{0.49\linewidth}\centering
+\begin{tikzpicture}
+\begin{axis}[width=6.4cm,height=6.4cm,axis lines=middle,xmin=0,xmax=1.3,ymin=0,ymax=1.3,
+  xtick={1},ytick={1},xlabel={$x$},ylabel={$y$},clip=false,
+  every axis x label/.style={at={(axis description cs:1,0)},anchor=north},
+  every axis y label/.style={at={(axis description cs:0,1)},anchor=east}]
+  \addplot[name path=up,draw=none,domain=0:1]{x};
+  \addplot[name path=dn,draw=none,domain=0:1,samples=40]{x^2};
+  \addplot[reg] fill between[of=up and dn];
+  \addplot[very thick,regline,domain=0:1.15]{x};
+  \addplot[very thick,regline,domain=0:1.12,samples=40]{x^2};
+  \draw[->,thick,hint] (axis cs:0,0)--(axis cs:0.4663,0.2174);
+  \draw[dashed,hint] (axis cs:0.4663,0.2174)--(axis cs:0.85,0.3963);
+  \fill[hint] (axis cs:0.4663,0.2174) circle(1.5pt);
+  \node[right] at (axis cs:1.15,1.15) {\scriptsize (3) $y=x$};
+  \node[right] at (axis cs:1.12,1.25) {\scriptsize (4) $y=x^2$};
+  \node[hint,below right] at (axis cs:0.45,0.2) {\tiny выход: $r=\frac{\sin\varphi}{\cos^2\varphi}$};
+  \node at (axis cs:0.62,0.52) {\scriptsize $D$};
+  \fill[regline] (axis cs:1,1) circle(1.5pt);
+\end{axis}
+\end{tikzpicture}
+
+\small График 1: проекция $D$ на $Oxy$; над $D$ тело занимает $x^2+y^2\leqslant z\leqslant2(x^2+y^2)$
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}\centering
+\begin{tikzpicture}
+\begin{axis}[width=6.4cm,height=6.4cm,axis lines=left,xmin=0,xmax=0.95,ymin=0,ymax=1.6,
+  xtick={0.4363,0.7854},xticklabels={$\varphi$,$\frac\pi4$},ytick={1.4142},yticklabels={$\sqrt2$},
+  xlabel={$\varphi$},ylabel={$r$},ylabel style={rotate=-90},clip=false]
+  \addplot[name path=top,draw=none,domain=0:0.7854,samples=40]{sin(deg(x))/cos(deg(x))^2};
+  \addplot[name path=bot,draw=none,domain=0:0.7854]{0};
+  \addplot[newreg] fill between[of=top and bot];
+  \addplot[very thick,newline,domain=0:0.7854,samples=40]{sin(deg(x))/cos(deg(x))^2};
+  \draw[very thick,newline] (axis cs:0.7854,0)--(axis cs:0.7854,1.4142);
+  \draw[dashed,gray] (axis cs:0,1.4142)--(axis cs:0.7854,1.4142);
+  \draw[->,thick,hint] (axis cs:0.4363,0)--(axis cs:0.4363,0.5145);
+  \node[anchor=east] at (axis cs:0.55,0.95) {\scriptsize (4) $r=\frac{\sin\varphi}{\cos^2\varphi}$};
+  \node[right] at (axis cs:0.7854,0.6) {\scriptsize (3)};
+  \node at (axis cs:0.63,0.25) {\scriptsize $D_{\varphi r}$};
+\end{axis}
+\end{tikzpicture}
+
+\small График 2: $D$ в плоскости $(\varphi,r)$; высота $r^2\leqslant z\leqslant2r^2$
+\end{minipage}
+\end{center}
+
+\step{3}{Замена переменных и якобиан}
+\[
+\begin{cases}x=r\cos\varphi,\\ y=r\sin\varphi,\\ z=z,\end{cases}\qquad |J|=r .
+\]
+
+\step{4}{Пределы по графику 2}
+$0\leqslant\varphi\leqslant\dfrac\pi4$;\quad $0\leqslant r\leqslant\dfrac{\sin\varphi}{\cos^2\varphi}$;\quad $r^2\leqslant z\leqslant2r^2$.
+
+\step{5}{Повторный интеграл и счёт}
+\[
+V=\int_0^{\pi/4}d\varphi\int_0^{\sin\varphi/\cos^2\varphi}r\,dr\int_{r^2}^{2r^2}dz
+=\int_0^{\pi/4}d\varphi\int_0^{\sin\varphi/\cos^2\varphi}r^3\,dr
+=\frac14\int_0^{\pi/4}\frac{\sin^4\varphi}{\cos^8\varphi}\,d\varphi .
+\]
+Записываем $\dfrac{\sin^4\varphi}{\cos^8\varphi}=\operatorname{tg}^4\varphi\cdot\dfrac1{\cos^2\varphi}\cdot\dfrac{1}{\cos^2\varphi}$ и делаем замену $t=\operatorname{tg}\varphi$: $dt=\dfrac{d\varphi}{\cos^2\varphi}$, $\dfrac1{\cos^2\varphi}=1+t^2$, $\varphi:0\to\frac\pi4\ \Leftrightarrow\ t:0\to1$:
+\[
+V=\frac14\int_0^1t^4(1+t^2)\,dt=\frac14\Bigl(\frac15+\frac17\Bigr)=\frac14\cdot\frac{12}{35}=\frac{3}{35}.
+\]
+
+\begin{answerbox}
+V=\frac{3}{35}
+\end{answerbox}
+
+\emph{Проверка в декартовых координатах:} $V=\iint_D\bigl(2(x^2+y^2)-(x^2+y^2)\bigr)dx\,dy=\int_0^1dx\int_{x^2}^x(x^2+y^2)\,dy=\int_0^1\Bigl(\frac43x^3-x^4-\frac{x^6}{3}\Bigr)dx=\frac13-\frac15-\frac1{21}=\frac{3}{35}$. \checkmark
+
+% ---------------------------------------------------------------
+\task{Найти объём тела, ограниченного поверхностями $z=x+y$, $z=xy$, $x+y=1$, $x=0$, $y=0$.}
+
+\step{1}{Шапка}
+\begin{shapka}
+$\displaystyle V=\iiint\limits_{V}dx\,dy\,dz$
+\tcblower
+$\partial V:\quad
+\begin{array}{ll}
+z=x+y & (1)\\
+z=xy & (2)\\
+x+y=1 & (3)\\
+x=0 & (4)\\
+y=0 & (5)
+\end{array}$
+\end{shapka}
+
+\step{2}{Два графика}
+(3), (4), (5) не содержат $z$ --- стенки; они вырезают проекцию --- треугольник $D:\ x\geqslant0,\ y\geqslant0,\ x+y\leqslant1$. Над $D$: $x+y-xy=x+y(1-x)\geqslant0$, поэтому (2) $z=xy$ (седло) --- пол, (1) $z=x+y$ (плоскость) --- крыша. Объём $V=\iint_D(x+y-xy)\,dx\,dy$.
+
+\textbf{Идея замены.} Треугольник «нарезан» отрезками $x+y=u$ ($0\leqslant u\leqslant1$), а точку на отрезке задаёт доля $v=\frac{y}{x+y}\in[0,1]$. Тогда $x=u(1-v)$, $y=uv$, и треугольник станет единичным квадратом. Бонус: крыша станет просто $z=u$.
+
+\begin{center}
+\begin{minipage}[t]{0.49\linewidth}\centering
+\figTen
+
+\small График 1: тело между седлом (2) и плоскостью (1) над треугольником
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}\centering
+\begin{tikzpicture}[scale=3.0,>=Stealth]
+  \fill[newreg] (0,0) rectangle (1,1);
+  \draw[->] (-0.1,0)--(1.35,0) node[below]{$u$};
+  \draw[->] (0,-0.1)--(0,1.3) node[left]{$v$};
+  \draw[very thick,newline] (0,0) rectangle (1,1);
+  \node[below] at (0.5,0) {\scriptsize (5): $v=0$};
+  \node[above] at (0.5,1) {\scriptsize (4): $v=1$};
+  \node[right] at (1,0.5) {\scriptsize (3): $u=1$};
+  \node[left] at (0,0.5) {\scriptsize $u=0$ $\to O$};
+  \node[below left] at (0,0) {\scriptsize $0$};
+  \node[below] at (1,-0.08) {\scriptsize $1$};
+  \node[left] at (0,1) {\scriptsize $1$};
+  \node at (0.5,0.5) {\small $D_{uv}$};
+  \node[text width=3.6cm,align=center] at (0.55,-0.42) {\scriptsize высота: $u^2v(1-v)\leqslant z\leqslant u$};
+\end{tikzpicture}
+
+\small График 2: единичный квадрат в $(u,v)$
+\end{minipage}
+\end{center}
+
+\step{3}{Замена переменных и якобиан}
+\[
+\begin{cases}x=u(1-v),\\ y=uv,\\ z=z,\end{cases}
+\qquad
+|J|=\left|\begin{vmatrix}1-v&-u\\ v&u\end{vmatrix}\right|=|u(1-v)+uv|=u .
+\]
+Граница: (3) $x+y=1\iff u=1$;\ (5) $y=0\iff v=0$;\ (4) $x=0\iff v=1$; сторона $u=0$ стягивается в точку $O$. Крыша и пол: $z=x+y=u$,\ $z=xy=u^2v(1-v)$.
+
+\step{4}{Пределы по графику 2}
+$0\leqslant v\leqslant1$;\quad $0\leqslant u\leqslant1$;\quad $u^2v(1-v)\leqslant z\leqslant u$.
+
+\step{5}{Повторный интеграл и счёт}
+\[
+V=\int_0^1dv\int_0^1u\,du\int_{u^2v(1-v)}^{u}dz=\int_0^1dv\int_0^1\bigl(u^2-u^3v(1-v)\bigr)du=\int_0^1\Bigl(\frac13-\frac{v(1-v)}{4}\Bigr)dv .
+\]
+$\int_0^1v(1-v)\,dv=\frac12-\frac13=\frac16$, поэтому
+\[
+V=\frac13-\frac14\cdot\frac16=\frac13-\frac1{24}=\frac{7}{24}.
+\]
+
+\begin{answerbox}
+V=\frac{7}{24}
+\end{answerbox}
+
+\emph{Проверка в декартовых координатах:} $\iint_D(x+y)\,dx\,dy=2\int_0^1x(1-x)\,dx=\frac13$, $\iint_Dxy\,dx\,dy=\int_0^1x\frac{(1-x)^2}{2}dx=\frac1{24}$, $V=\frac13-\frac1{24}=\frac7{24}$. \checkmark

@@ -1,0 +1,25 @@
+\documentclass[11pt,a4paper]{article}
+\input{tex/preamble}
+\input{tex/figures3d}
+
+\title{\textbf{Кратные интегралы с нуля}\\[2mm]\large Теория и решение 13 задач по алгоритму «пять шагов»}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.5cm}
+\tableofcontents
+
+\clearpage
+\part*{Часть I. Теория}
+\addcontentsline{toc}{part}{Часть I. Теория}
+\input{tex/theory}
+
+\clearpage
+\part*{Часть II. Решения задач}
+\addcontentsline{toc}{part}{Часть II. Решения задач}
+\IfFileExists{tex/tasks1.tex}{\input{tex/tasks1}}{}
+\IfFileExists{tex/tasks2.tex}{\input{tex/tasks2}}{}
+\IfFileExists{tex/tasks3.tex}{\input{tex/tasks3}}{}
+\end{document}
