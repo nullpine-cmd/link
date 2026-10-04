@@ -81,6 +81,16 @@ class AscendJourneyTest {
         }
     }
 
+    private fun tap(text: String) {
+        waitForText(text)
+        compose.onAllNodesWithText(text).onFirst().performClick()
+    }
+
+    private fun tapDescription(description: String) {
+        waitForDescription(description)
+        compose.onAllNodesWithContentDescription(description).onFirst().performClick()
+    }
+
     private fun toastCount(): Int = compose.onAllNodes(hasTestTag(CELEBRATION_TOAST_TAG)).fetchSemanticsNodes().size
 
     /**
@@ -120,7 +130,7 @@ class AscendJourneyTest {
         // Онбординг
         waitForText("Начать путь")
         screenshot("01_intro")
-        compose.onNodeWithText("Начать путь").performClick()
+        tap("Начать путь")
         waitForText("Создать героя")
         screenshot("02_principles")
         compose.onNodeWithText("Создать героя").performScrollTo().performClick()
@@ -134,7 +144,7 @@ class AscendJourneyTest {
         waitForText("Тестер", substring = true)
         screenshot("04_today_empty")
         mainList().performScrollToNode(hasText("Медитация"))
-        compose.onNodeWithText("Медитация").performClick()
+        tap("Медитация")
         waitForText("Создать квест")
         screenshot("05_quest_editor")
         compose.onNodeWithText("Создать квест").performScrollTo().performClick()
@@ -144,19 +154,19 @@ class AscendJourneyTest {
         compose.onAllNodesWithContentDescription("Выполнить").onFirst().performClick()
         waitForText("Засчитать")
         screenshot("06_log_progress")
-        compose.onNodeWithText("Засчитать").performClick()
+        tap("Засчитать")
         waitForText("Отменить")
         screenshot("07_reward")
         dismissCelebrations()
 
         // Вкладки
-        compose.onNodeWithContentDescription("Квесты").performClick()
+        tapDescription("Квесты")
         waitForText("Привычки")
         screenshot("08_quests")
 
-        compose.onNodeWithContentDescription("Книги").performClick()
+        tapDescription("Книги")
         waitForText("Библиотека")
-        compose.onNodeWithContentDescription("Добавить книгу").performClick()
+        tapDescription("Добавить книгу")
         waitForText("Поставить на полку")
         val fields = compose.onAllNodes(hasSetTextAction())
         fields[0].performTextInput("Мастер и Маргарита")
@@ -168,40 +178,41 @@ class AscendJourneyTest {
         screenshot("10_library")
         compose.onAllNodesWithText("Мастер и Маргарита").onFirst().performClick()
         waitForText("Записать чтение")
-        compose.onNodeWithText("Записать чтение").performClick()
+        tap("Записать чтение")
         waitForText("Засчитать")
-        compose.onNodeWithText("Засчитать").performClick()
+        tap("Засчитать")
         waitForText("стр. 20 из 480")
         screenshot("11_book_detail")
         dismissCelebrations()
-        compose.onNodeWithContentDescription("Назад").performClick()
+        tapDescription("Назад")
+        waitForText("Библиотека")
 
         // Герой и достижения
-        compose.onNodeWithContentDescription("Герой").performClick()
+        tapDescription("Герой")
         waitForDescription("Настройки")
         screenshot("12_hero")
         mainList().performScrollToNode(hasText("Достижения"))
         screenshot("13_hero_stats")
-        compose.onNodeWithText("Достижения").performClick()
+        tap("Достижения")
         waitForText("Бронза:", substring = true)
         screenshot("14_achievements")
-        compose.onNodeWithContentDescription("Назад").performClick()
+        tapDescription("Назад")
 
         // Лавка наград
         waitForText("Достижения")
         mainList().performScrollToNode(hasText("Лавка наград"))
-        compose.onNodeWithText("Лавка наград").performClick()
+        tap("Лавка наград")
         waitForText("Твоё золото")
         screenshot("15_shop")
-        compose.onNodeWithContentDescription("Назад").performClick()
+        tapDescription("Назад")
 
         // Настройки
         waitForText("Лавка наград")
         mainList().performScrollToNode(hasContentDescription("Настройки"))
-        compose.onNodeWithContentDescription("Настройки").performClick()
+        tapDescription("Настройки")
         waitForText("Начать путь заново")
         screenshot("16_settings")
-        compose.onNodeWithContentDescription("Назад").performClick()
+        tapDescription("Назад")
         waitForDescription("Настройки")
 
         // Церемония нового уровня
@@ -223,9 +234,9 @@ class AscendJourneyTest {
         waitForText("НОВЫЙ УРОВЕНЬ")
         Thread.sleep(1_500)
         screenshot("17_level_up")
-        compose.onNodeWithText("Продолжить путь").performClick()
+        tap("Продолжить путь")
 
-        compose.onNodeWithContentDescription("День").performClick()
+        tapDescription("День")
         waitForText("Прогресс дня")
         mainList().performScrollToIndex(0)
         waitForText("Тестер", substring = true)
