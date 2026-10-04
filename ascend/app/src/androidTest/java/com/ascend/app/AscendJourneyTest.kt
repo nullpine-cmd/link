@@ -47,6 +47,10 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class AscendJourneyTest {
 
+    private companion object {
+        const val CONTINUE = "Продолжить путь"
+    }
+
     @get:Rule
     val compose = createAndroidComposeRule<MainActivity>()
 
@@ -93,22 +97,31 @@ class AscendJourneyTest {
 
     private fun toastCount(): Int = compose.onAllNodes(hasTestTag(CELEBRATION_TOAST_TAG)).fetchSemanticsNodes().size
 
+    private fun ceremonyCount(): Int = compose.onAllNodesWithText(CONTINUE).fetchSemanticsNodes().size
+
     /**
-     * Дожидается тостов празднований и закрывает их касанием, пока экран не будет чист
-     * хотя бы секунду: тосты перекрывают верх экрана, где живут кнопки «назад» и «добавить».
+     * Дожидается празднований и закрывает их, пока экран не будет чист хотя бы секунду.
+     * Церемония уровня может наступить в любой момент: например, после 23:00 первый квест
+     * открывает «Ночную сову», и её опыт поднимает уровень раньше, чем в дневном прогоне.
      */
     private fun dismissCelebrations() {
-        runCatching { compose.waitUntil(4_000) { toastCount() > 0 } }
+        runCatching { compose.waitUntil(4_000) { toastCount() > 0 || ceremonyCount() > 0 } }
         var quietSince = System.currentTimeMillis()
-        val deadline = quietSince + 25_000
+        val deadline = quietSince + 30_000
         while (System.currentTimeMillis() < deadline) {
-            if (toastCount() > 0) {
-                runCatching { compose.onAllNodes(hasTestTag(CELEBRATION_TOAST_TAG)).onFirst().performClick() }
-                Thread.sleep(400)
-                quietSince = System.currentTimeMillis()
-            } else {
-                if (System.currentTimeMillis() - quietSince > 1_200) return
-                Thread.sleep(200)
+            when {
+                ceremonyCount() > 0 -> {
+                    runCatching { compose.onAllNodesWithText(CONTINUE).onFirst().performClick() }
+                    Thread.sleep(700)
+                    quietSince = System.currentTimeMillis()
+                }
+                toastCount() > 0 -> {
+                    runCatching { compose.onAllNodes(hasTestTag(CELEBRATION_TOAST_TAG)).onFirst().performClick() }
+                    Thread.sleep(400)
+                    quietSince = System.currentTimeMillis()
+                }
+                System.currentTimeMillis() - quietSince > 1_200 -> return
+                else -> Thread.sleep(200)
             }
         }
     }
@@ -215,26 +228,31 @@ class AscendJourneyTest {
         tapDescription("Назад")
         waitForDescription("Настройки")
 
-        // Церемония нового уровня
+        // Церемония нового уровня: эпические квесты, пока уровень не вырастет
         runBlocking {
             val repository = app.container.repository
-            val id = repository.saveQuest(
-                QuestDraft(
-                    title = "Эпический поход",
-                    emoji = "⚔️",
-                    kind = QuestKind.TASK,
-                    attribute = Attribute.STRENGTH,
-                    difficulty = Difficulty.EPIC,
-                ),
-            )
-            val outcome = requireNotNull(repository.completeQuest(id, 1))
-            check(outcome.leveledUp) { "Ожидался новый уровень, получено ${outcome.levelAfter}" }
-            app.container.celebrations.emit(Celebration.Completed(outcome))
+            repeat(10) { index ->
+                val id = repository.saveQuest(
+                    QuestDraft(
+                        title = "Эпический поход ${index + 1}",
+                        emoji = "⚔️",
+                        kind = QuestKind.TASK,
+                        attribute = Attribute.STRENGTH,
+                        difficulty = Difficulty.EPIC,
+                    ),
+                )
+                val outcome = requireNotNull(repository.completeQuest(id, 1))
+                if (outcome.leveledUp) {
+                    app.container.celebrations.emit(Celebration.Completed(outcome))
+                    return@runBlocking
+                }
+            }
+            error("Новый уровень так и не наступил")
         }
         waitForText("НОВЫЙ УРОВЕНЬ")
         Thread.sleep(1_500)
         screenshot("17_level_up")
-        tap("Продолжить путь")
+        tap(CONTINUE)
 
         tapDescription("День")
         waitForText("Прогресс дня")
