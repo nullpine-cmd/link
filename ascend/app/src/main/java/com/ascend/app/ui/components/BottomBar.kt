@@ -50,6 +50,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.ascend.app.ui.theme.AscendColors
@@ -132,6 +134,7 @@ fun AscendBottomBar(
 
 @Composable
 private fun TabItem(tab: MainTab, selected: Boolean, onClick: () -> Unit) {
+    val haptics = LocalHapticFeedback.current
     val scale by animateFloatAsState(
         targetValue = if (selected) 1.12f else 1f,
         animationSpec = spring(dampingRatio = 0.35f, stiffness = 500f),
@@ -142,7 +145,10 @@ private fun TabItem(tab: MainTab, selected: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxHeight()
             .fillMaxWidth()
-            .bounceClick(pressedScale = 0.86f, onClick = onClick),
+            .bounceClick(pressedScale = 0.86f) {
+                if (!selected) haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onClick()
+            },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {

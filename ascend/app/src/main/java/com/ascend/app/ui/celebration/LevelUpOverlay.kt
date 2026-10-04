@@ -1,5 +1,6 @@
 package com.ascend.app.ui.celebration
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -90,6 +91,8 @@ fun LevelUpOverlay(item: CelebrationItem.LevelUp, onContinue: () -> Unit) {
         }
         details.animateTo(1f, tween(500, easing = FastOutSlowInEasing))
     }
+
+    BackHandler(onBack = onContinue)
 
     val transition = rememberInfiniteTransition(label = "levelUp")
     val rays by transition.animateFloat(
