@@ -70,6 +70,10 @@ fun QuestCard(
     menu: List<QuestMenuAction> = emptyList(),
 ) {
     val color = quest.attribute.color
+    // Оптимистичное выполнение: галочка анимируется сразу, не дожидаясь базы.
+    var localDone by remember(quest.id, done) { mutableStateOf(done) }
+    val instant = !quest.hasTarget
+    val checked = done || localDone
     val titleColor by animateColorAsState(
         if (done) AscendColors.TextSecondary else AscendColors.TextPrimary,
         label = "questTitle",
@@ -83,10 +87,15 @@ fun QuestCard(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             QuestCheck(
-                checked = done,
+                checked = checked,
                 color = color,
-                enabled = canComplete && !done,
-                onClick = { if (canComplete && !done) onCheck() },
+                enabled = canComplete && !checked,
+                onClick = {
+                    if (canComplete && !checked) {
+                        if (instant) localDone = true
+                        onCheck()
+                    }
+                },
             )
             Spacer(Modifier.width(12.dp))
             EmojiTile(quest.emoji, color, side = 42.dp)

@@ -41,7 +41,7 @@ import com.ascend.app.data.local.isFinished
 import com.ascend.app.data.local.progress
 import com.ascend.app.di.appViewModel
 import com.ascend.app.ui.components.BookCover
-import com.ascend.app.ui.components.BottomBarSpace
+import com.ascend.app.ui.components.bottomBarContentPadding
 import com.ascend.app.ui.components.CircleIconButton
 import com.ascend.app.ui.components.EmptyState
 import com.ascend.app.ui.components.GlowProgressBar
@@ -69,7 +69,7 @@ fun LibraryScreen(state: LibraryUiState, onOpenBook: (Long) -> Unit, onAdd: () -
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = BottomBarSpace + 16.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = bottomBarContentPadding()),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {

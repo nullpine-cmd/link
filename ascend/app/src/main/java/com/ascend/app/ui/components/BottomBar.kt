@@ -11,6 +11,9 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -47,6 +50,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.ascend.app.ui.theme.AscendColors
 
@@ -195,5 +199,10 @@ private fun AddOrb(onAdd: () -> Unit) {
     }
 }
 
-/** Высота, которую нужно оставить снизу под панель. */
-val BottomBarSpace = 110.dp
+/** Высота панели вместе с отступами — без учёта системной навигации. */
+private val BottomBarSpace = 92.dp
+
+/** Отступ снизу для прокручиваемого содержимого, чтобы последний элемент не прятался под панелью. */
+@Composable
+fun bottomBarContentPadding(): Dp =
+    BottomBarSpace + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 16.dp

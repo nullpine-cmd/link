@@ -39,7 +39,7 @@ import com.ascend.app.data.local.hasTarget
 import com.ascend.app.data.local.isHabit
 import com.ascend.app.data.local.schedule
 import com.ascend.app.di.appViewModel
-import com.ascend.app.ui.components.BottomBarSpace
+import com.ascend.app.ui.components.bottomBarContentPadding
 import com.ascend.app.ui.components.EmptyState
 import com.ascend.app.ui.components.GhostButton
 import com.ascend.app.ui.components.SectionLabel
@@ -120,7 +120,7 @@ fun QuestsScreen(
                         scaleX = scale
                         scaleY = scale
                     },
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = BottomBarSpace + 16.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = bottomBarContentPadding()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 when (tabs[page]) {

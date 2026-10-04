@@ -51,7 +51,7 @@ import com.ascend.app.ui.components.ActivityHeatmap
 import com.ascend.app.ui.components.AscendSheet
 import com.ascend.app.ui.components.AttributeOrb
 import com.ascend.app.ui.components.AttributeRadar
-import com.ascend.app.ui.components.BottomBarSpace
+import com.ascend.app.ui.components.bottomBarContentPadding
 import com.ascend.app.ui.components.CircleIconButton
 import com.ascend.app.ui.components.GlassCard
 import com.ascend.app.ui.components.GlowProgressBar
@@ -97,7 +97,7 @@ fun HeroScreen(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = BottomBarSpace + 16.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = bottomBarContentPadding()),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item(key = "top") {

@@ -68,7 +68,7 @@ import com.ascend.app.domain.DayPlan
 import com.ascend.app.domain.HeroState
 import com.ascend.app.domain.PlanStatus
 import com.ascend.app.ui.components.AscendTextField
-import com.ascend.app.ui.components.BottomBarSpace
+import com.ascend.app.ui.components.bottomBarContentPadding
 import com.ascend.app.ui.components.CircleIconButton
 import com.ascend.app.ui.components.EmptyState
 import com.ascend.app.ui.components.GhostButton
@@ -140,7 +140,7 @@ fun TodayScreen(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = BottomBarSpace + 16.dp),
+        contentPadding = PaddingValues(bottom = bottomBarContentPadding()),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item(key = "header") {
