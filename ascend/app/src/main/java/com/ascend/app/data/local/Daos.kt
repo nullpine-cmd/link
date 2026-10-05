@@ -35,11 +35,17 @@ interface QuestDao {
     @Query("SELECT * FROM quests WHERE id = :id")
     suspend fun get(id: Long): QuestEntity?
 
+    @Query("SELECT * FROM quests WHERE id = :id")
+    fun observe(id: Long): Flow<QuestEntity?>
+
     @Query("SELECT * FROM quests WHERE bookId = :bookId AND archived = 0")
     fun observeForBook(bookId: Long): Flow<List<QuestEntity>>
 
     @Insert
     suspend fun insert(quest: QuestEntity): Long
+
+    @Insert
+    suspend fun insertAll(quests: List<QuestEntity>)
 
     @Update
     suspend fun update(quest: QuestEntity)
@@ -59,6 +65,9 @@ interface BookDao {
     @Query("SELECT * FROM books ORDER BY CASE WHEN finishedAt IS NULL THEN 0 ELSE 1 END, createdAt DESC")
     fun observeAll(): Flow<List<BookEntity>>
 
+    @Query("SELECT * FROM books ORDER BY id")
+    suspend fun getAll(): List<BookEntity>
+
     @Query("SELECT * FROM books WHERE id = :id")
     fun observe(id: Long): Flow<BookEntity?>
 
@@ -67,6 +76,9 @@ interface BookDao {
 
     @Insert
     suspend fun insert(book: BookEntity): Long
+
+    @Insert
+    suspend fun insertAll(books: List<BookEntity>)
 
     @Update
     suspend fun update(book: BookEntity)
@@ -79,6 +91,9 @@ interface BookDao {
 
     @Query("SELECT COUNT(*) FROM books WHERE finishedAt IS NOT NULL")
     fun observeFinishedCount(): Flow<Long>
+
+    @Query("SELECT COUNT(*) FROM books")
+    suspend fun count(): Int
 
     @Query("DELETE FROM books")
     suspend fun clear()
@@ -97,6 +112,10 @@ data class LogCounters(
     val comebacks: Long,
     val purchases: Long,
     val perfectDays: Long,
+    val challenges: Long,
+    val bosses: Long,
+    val talents: Long,
+    val bestCombo: Long,
 )
 
 private const val COUNTERS_QUERY = """
@@ -109,7 +128,11 @@ private const val COUNTERS_QUERY = """
         (SELECT COUNT(*) FROM activity_log WHERE overachieved = 1) AS overachieved,
         (SELECT COUNT(*) FROM activity_log WHERE comeback = 1) AS comebacks,
         (SELECT COUNT(*) FROM activity_log WHERE kind = 'PURCHASE') AS purchases,
-        (SELECT COUNT(*) FROM activity_log WHERE kind = 'PERFECT_DAY') AS perfectDays
+        (SELECT COUNT(*) FROM activity_log WHERE kind = 'PERFECT_DAY') AS perfectDays,
+        (SELECT COUNT(*) FROM activity_log WHERE kind = 'CHALLENGE') AS challenges,
+        (SELECT COUNT(*) FROM activity_log WHERE kind = 'BOSS') AS bosses,
+        (SELECT COUNT(*) FROM activity_log WHERE kind = 'TALENT') AS talents,
+        (SELECT COALESCE(MAX(comboStep), 0) + 1 FROM activity_log WHERE kind IN ('QUEST', 'READING')) AS bestCombo
 """
 
 private const val ATTRIBUTE_XP_QUERY = """
@@ -126,17 +149,29 @@ interface LogDao {
     @Insert
     suspend fun insert(log: LogEntity): Long
 
+    @Insert
+    suspend fun insertAll(logs: List<LogEntity>)
+
     @Query("SELECT * FROM activity_log WHERE id = :id")
     suspend fun get(id: Long): LogEntity?
 
     @Query("DELETE FROM activity_log WHERE id = :id")
     suspend fun delete(id: Long)
 
+    @Query("SELECT * FROM activity_log ORDER BY timestamp")
+    suspend fun getAll(): List<LogEntity>
+
     @Query("SELECT * FROM activity_log WHERE day = :day ORDER BY timestamp")
     fun observeDay(day: Long): Flow<List<LogEntity>>
 
     @Query("SELECT * FROM activity_log WHERE day = :day ORDER BY timestamp")
     suspend fun getDay(day: Long): List<LogEntity>
+
+    @Query("SELECT * FROM activity_log WHERE day BETWEEN :from AND :to ORDER BY timestamp")
+    fun observeRange(from: Long, to: Long): Flow<List<LogEntity>>
+
+    @Query("SELECT * FROM activity_log WHERE day BETWEEN :from AND :to ORDER BY timestamp")
+    suspend fun getRange(from: Long, to: Long): List<LogEntity>
 
     @Query("SELECT * FROM activity_log WHERE bookId = :bookId AND kind IN ('QUEST', 'READING') ORDER BY timestamp DESC")
     fun observeForBook(bookId: Long): Flow<List<LogEntity>>
@@ -164,6 +199,12 @@ interface LogDao {
 
     @Query("SELECT COALESCE(SUM(gold), 0) FROM activity_log")
     suspend fun gold(): Long
+
+    @Query("SELECT COALESCE(SUM(xp), 0) FROM activity_log WHERE day < :day")
+    fun observeXpBefore(day: Long): Flow<Long>
+
+    @Query("SELECT COALESCE(SUM(xp), 0) FROM activity_log WHERE day < :day")
+    suspend fun xpBefore(day: Long): Long
 
     @Query(ATTRIBUTE_XP_QUERY)
     fun observeAttributeXp(): Flow<List<AttributeXp>>
@@ -195,6 +236,12 @@ interface LogDao {
     @Query("DELETE FROM activity_log WHERE kind = 'BOOK_FINISHED' AND bookId = :bookId")
     suspend fun deleteBookFinished(bookId: Long)
 
+    @Query("SELECT refId FROM activity_log WHERE kind = :kind AND refId IS NOT NULL")
+    suspend fun refIds(kind: LogKind): List<String>
+
+    @Query("SELECT refId FROM activity_log WHERE kind = :kind AND refId IS NOT NULL")
+    fun observeRefIds(kind: LogKind): Flow<List<String>>
+
     @Query("UPDATE activity_log SET bookId = NULL WHERE bookId = :bookId")
     suspend fun detachBook(bookId: Long)
 
@@ -207,11 +254,17 @@ interface ShopDao {
     @Query("SELECT * FROM shop_items ORDER BY cost, id")
     fun observeAll(): Flow<List<ShopItemEntity>>
 
+    @Query("SELECT * FROM shop_items ORDER BY id")
+    suspend fun getAll(): List<ShopItemEntity>
+
     @Query("SELECT * FROM shop_items WHERE id = :id")
     suspend fun get(id: Long): ShopItemEntity?
 
     @Insert
     suspend fun insert(item: ShopItemEntity): Long
+
+    @Insert
+    suspend fun insertAll(items: List<ShopItemEntity>)
 
     @Update
     suspend fun update(item: ShopItemEntity)
@@ -231,12 +284,54 @@ interface AchievementDao {
     @Query("SELECT * FROM achievements ORDER BY unlockedAt DESC")
     fun observeAll(): Flow<List<AchievementEntity>>
 
+    @Query("SELECT * FROM achievements ORDER BY unlockedAt")
+    suspend fun getAll(): List<AchievementEntity>
+
     @Query("SELECT id FROM achievements")
     suspend fun ids(): List<String>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(entity: AchievementEntity)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAll(entities: List<AchievementEntity>)
+
     @Query("DELETE FROM achievements")
+    suspend fun clear()
+}
+
+@Dao
+interface TalentDao {
+    @Query("SELECT * FROM talents ORDER BY unlockedAt")
+    fun observeAll(): Flow<List<TalentEntity>>
+
+    @Query("SELECT * FROM talents ORDER BY unlockedAt")
+    suspend fun getAll(): List<TalentEntity>
+
+    @Query("SELECT id FROM talents")
+    suspend fun ids(): List<String>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(entity: TalentEntity)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAll(entities: List<TalentEntity>)
+
+    @Query("DELETE FROM talents")
+    suspend fun clear()
+}
+
+@Dao
+interface FocusDao {
+    @Query("SELECT * FROM focus_session WHERE id = 1")
+    fun observe(): Flow<FocusSessionEntity?>
+
+    @Query("SELECT * FROM focus_session WHERE id = 1")
+    suspend fun get(): FocusSessionEntity?
+
+    @Upsert
+    suspend fun upsert(session: FocusSessionEntity)
+
+    @Query("DELETE FROM focus_session")
     suspend fun clear()
 }

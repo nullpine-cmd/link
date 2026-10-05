@@ -31,8 +31,8 @@ fun CelebrationHost(
     modifier: Modifier = Modifier,
 ) {
     val current = state.current
-    val overlay = current as? CelebrationItem.LevelUp
-    val toast = current?.takeUnless { it is CelebrationItem.LevelUp }
+    val overlay = current?.takeIf { it is CelebrationItem.LevelUp || it is CelebrationItem.BossDefeated }
+    val toast = current?.takeUnless { it is CelebrationItem.LevelUp || it is CelebrationItem.BossDefeated }
 
     Box(modifier.fillMaxSize()) {
         AnimatedContent(
@@ -44,10 +44,10 @@ fun CelebrationHost(
             contentKey = { it?.id },
             label = "overlay",
         ) { item ->
-            if (item != null) {
-                LevelUpOverlay(item, onContinue = { state.dismiss(item.id) })
-            } else {
-                Box(Modifier)
+            when (item) {
+                is CelebrationItem.LevelUp -> LevelUpOverlay(item, onContinue = { state.dismiss(item.id) })
+                is CelebrationItem.BossDefeated -> BossDefeatedOverlay(item, onContinue = { state.dismiss(item.id) })
+                else -> Box(Modifier)
             }
         }
 
@@ -90,7 +90,9 @@ fun CelebrationHost(
                     is CelebrationItem.Milestone -> MilestoneToast(item, onDismiss = dismiss)
                     is CelebrationItem.AchievementUnlocked -> AchievementToast(item.achievement, onDismiss = dismiss)
                     is CelebrationItem.Purchase -> PurchaseToast(item, onDismiss = dismiss)
-                    is CelebrationItem.LevelUp -> Box(Modifier)
+                    is CelebrationItem.ChallengeDone -> ChallengeToast(item.challenge, onDismiss = dismiss)
+                    is CelebrationItem.TalentUnlocked -> TalentToast(item.talent, onDismiss = dismiss)
+                    is CelebrationItem.LevelUp, is CelebrationItem.BossDefeated -> Box(Modifier)
                 }
             }
         }

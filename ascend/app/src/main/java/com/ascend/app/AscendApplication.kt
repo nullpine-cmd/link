@@ -7,6 +7,7 @@ import com.ascend.app.data.GameRepository
 import com.ascend.app.data.SystemTimeProvider
 import com.ascend.app.data.TransactionRunner
 import com.ascend.app.data.local.AscendDatabase
+import com.ascend.app.data.local.Migrations
 import com.ascend.app.di.AppContainer
 import com.ascend.app.reminder.ReminderNotifications
 import com.ascend.app.reminder.WorkReminderScheduler
@@ -18,7 +19,9 @@ class AscendApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        val database = Room.databaseBuilder(this, AscendDatabase::class.java, AscendDatabase.NAME).build()
+        val database = Room.databaseBuilder(this, AscendDatabase::class.java, AscendDatabase.NAME)
+            .addMigrations(*Migrations.ALL)
+            .build()
         val transactions = object : TransactionRunner {
             override suspend fun <R> transaction(block: suspend () -> R): R = database.withTransaction(block)
         }
@@ -29,6 +32,8 @@ class AscendApplication : Application() {
             logDao = database.logDao(),
             shopDao = database.shopDao(),
             achievementDao = database.achievementDao(),
+            talentDao = database.talentDao(),
+            focusDao = database.focusDao(),
             tx = transactions,
             time = SystemTimeProvider,
         )

@@ -5,6 +5,8 @@ import com.ascend.app.data.local.AchievementEntity
 import com.ascend.app.data.local.AttributeXp
 import com.ascend.app.data.local.BookDao
 import com.ascend.app.data.local.BookEntity
+import com.ascend.app.data.local.FocusDao
+import com.ascend.app.data.local.FocusSessionEntity
 import com.ascend.app.data.local.DayActivity
 import com.ascend.app.data.local.HeroDao
 import com.ascend.app.data.local.HeroEntity
@@ -16,6 +18,8 @@ import com.ascend.app.data.local.QuestDao
 import com.ascend.app.data.local.QuestEntity
 import com.ascend.app.data.local.ShopDao
 import com.ascend.app.data.local.ShopItemEntity
+import com.ascend.app.data.local.TalentDao
+import com.ascend.app.data.local.TalentEntity
 import com.ascend.core.Units
 import java.time.Instant
 import java.time.LocalDate
@@ -33,17 +37,33 @@ class FakeStore {
     val logs = MutableStateFlow<List<LogEntity>>(emptyList())
     val shop = MutableStateFlow<List<ShopItemEntity>>(emptyList())
     val achievements = MutableStateFlow<List<AchievementEntity>>(emptyList())
+    val talents = MutableStateFlow<List<TalentEntity>>(emptyList())
+    val focus = MutableStateFlow<FocusSessionEntity?>(null)
     private var nextId = 1L
 
     fun id(): Long = nextId++
 }
 
 class FakeTime(var date: LocalDate = LocalDate.of(2026, 10, 5), var hourOfDay: Int = 12) : TimeProvider {
-    override fun now(): Long = date.atTime(hourOfDay, 0).toInstant(ZoneOffset.UTC).toEpochMilli()
+    /** Минуты внутри часа — чтобы моделировать комбо и таймер. */
+    var minuteOfHour: Int = 0
+
+    override fun now(): Long = date.atTime(hourOfDay, minuteOfHour).toInstant(ZoneOffset.UTC).toEpochMilli()
     override fun zone(): ZoneId = ZoneOffset.UTC
 
     fun nextDay(days: Long = 1) {
         date = date.plusDays(days)
+    }
+
+    /** Сдвигает часы вперёд, переходя через часы и сутки. */
+    fun advanceMinutes(minutes: Int) {
+        var total = hourOfDay * 60 + minuteOfHour + minutes
+        while (total >= 24 * 60) {
+            total -= 24 * 60
+            date = date.plusDays(1)
+        }
+        hourOfDay = total / 60
+        minuteOfHour = total % 60
     }
 
     fun epochOf(millis: Long): LocalDate = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
@@ -71,6 +91,7 @@ class FakeQuestDao(private val store: FakeStore) : QuestDao {
     override fun observeAll(): Flow<List<QuestEntity>> = store.quests.map(::sorted)
     override suspend fun getAll(): List<QuestEntity> = sorted(store.quests.value)
     override suspend fun get(id: Long): QuestEntity? = store.quests.value.firstOrNull { it.id == id }
+    override fun observe(id: Long): Flow<QuestEntity?> = store.quests.map { list -> list.firstOrNull { it.id == id } }
     override fun observeForBook(bookId: Long): Flow<List<QuestEntity>> =
         store.quests.map { list -> list.filter { it.bookId == bookId && !it.archived } }
 
@@ -78,6 +99,10 @@ class FakeQuestDao(private val store: FakeStore) : QuestDao {
         val id = store.id()
         store.quests.value = store.quests.value + quest.copy(id = id)
         return id
+    }
+
+    override suspend fun insertAll(quests: List<QuestEntity>) {
+        store.quests.value = store.quests.value + quests
     }
 
     override suspend fun update(quest: QuestEntity) {
@@ -101,6 +126,11 @@ class FakeBookDao(private val store: FakeStore) : BookDao {
     override fun observeAll(): Flow<List<BookEntity>> = store.books
     override fun observe(id: Long): Flow<BookEntity?> = store.books.map { list -> list.firstOrNull { it.id == id } }
     override suspend fun get(id: Long): BookEntity? = store.books.value.firstOrNull { it.id == id }
+    override suspend fun getAll(): List<BookEntity> = store.books.value.sortedBy { it.id }
+    override suspend fun insertAll(books: List<BookEntity>) {
+        store.books.value = store.books.value + books
+    }
+    override suspend fun count(): Int = store.books.value.size
 
     override suspend fun insert(book: BookEntity): Long {
         val id = store.id()
@@ -132,10 +162,26 @@ class FakeLogDao(private val store: FakeStore) : LogDao {
         return id
     }
 
+    override suspend fun insertAll(logs: List<LogEntity>) {
+        store.logs.value = store.logs.value + logs
+    }
+
     override suspend fun get(id: Long): LogEntity? = store.logs.value.firstOrNull { it.id == id }
     override suspend fun delete(id: Long) {
         store.logs.value = store.logs.value.filterNot { it.id == id }
     }
+
+    override suspend fun getAll(): List<LogEntity> = store.logs.value.sortedBy { it.timestamp }
+
+    override fun observeRange(from: Long, to: Long): Flow<List<LogEntity>> = store.logs.map { range(it, from, to) }
+    override suspend fun getRange(from: Long, to: Long): List<LogEntity> = range(store.logs.value, from, to)
+    private fun range(list: List<LogEntity>, from: Long, to: Long) = list.filter { it.day in from..to }.sortedBy { it.timestamp }
+
+    override fun observeXpBefore(day: Long): Flow<Long> = store.logs.map { list -> list.filter { it.day < day }.sumOf { it.xp.toLong() } }
+    override suspend fun xpBefore(day: Long): Long = store.logs.value.filter { it.day < day }.sumOf { it.xp.toLong() }
+
+    override suspend fun refIds(kind: LogKind): List<String> = store.logs.value.filter { it.kind == kind }.mapNotNull { it.refId }
+    override fun observeRefIds(kind: LogKind): Flow<List<String>> = store.logs.map { list -> list.filter { it.kind == kind }.mapNotNull { it.refId } }
 
     override fun observeDay(day: Long): Flow<List<LogEntity>> = store.logs.map { day(it, day) }
     override suspend fun getDay(day: Long): List<LogEntity> = day(store.logs.value, day)
@@ -179,6 +225,10 @@ class FakeLogDao(private val store: FakeStore) : LogDao {
         comebacks = list.count { it.comeback }.toLong(),
         purchases = list.count { it.kind == LogKind.PURCHASE }.toLong(),
         perfectDays = list.count { it.kind == LogKind.PERFECT_DAY }.toLong(),
+        challenges = list.count { it.kind == LogKind.CHALLENGE }.toLong(),
+        bosses = list.count { it.kind == LogKind.BOSS }.toLong(),
+        talents = list.count { it.kind == LogKind.TALENT }.toLong(),
+        bestCombo = (list.filter { it.kind in activeKinds }.maxOfOrNull { it.comboStep } ?: 0).toLong() + 1,
     )
 
     override fun observeActivity(from: Long, to: Long): Flow<List<DayActivity>> = store.logs.map { list ->
@@ -210,6 +260,10 @@ class FakeLogDao(private val store: FakeStore) : LogDao {
 class FakeShopDao(private val store: FakeStore) : ShopDao {
     override fun observeAll(): Flow<List<ShopItemEntity>> = store.shop.map { list -> list.sortedWith(compareBy({ it.cost }, { it.id })) }
     override suspend fun get(id: Long): ShopItemEntity? = store.shop.value.firstOrNull { it.id == id }
+    override suspend fun getAll(): List<ShopItemEntity> = store.shop.value.sortedBy { it.id }
+    override suspend fun insertAll(items: List<ShopItemEntity>) {
+        store.shop.value = store.shop.value + items
+    }
     override suspend fun insert(item: ShopItemEntity): Long {
         val id = store.id()
         store.shop.value = store.shop.value + item.copy(id = id)
@@ -232,6 +286,8 @@ class FakeShopDao(private val store: FakeStore) : ShopDao {
 
 class FakeAchievementDao(private val store: FakeStore) : AchievementDao {
     override fun observeAll(): Flow<List<AchievementEntity>> = store.achievements
+    override suspend fun getAll(): List<AchievementEntity> = store.achievements.value
+    override suspend fun insertAll(entities: List<AchievementEntity>) = entities.forEach { insert(it) }
     override suspend fun ids(): List<String> = store.achievements.value.map { it.id }
     override suspend fun insert(entity: AchievementEntity) {
         if (store.achievements.value.none { it.id == entity.id }) {
@@ -244,6 +300,30 @@ class FakeAchievementDao(private val store: FakeStore) : AchievementDao {
     }
 }
 
+class FakeTalentDao(private val store: FakeStore) : TalentDao {
+    override fun observeAll(): Flow<List<TalentEntity>> = store.talents
+    override suspend fun getAll(): List<TalentEntity> = store.talents.value
+    override suspend fun ids(): List<String> = store.talents.value.map { it.id }
+    override suspend fun insert(entity: TalentEntity) {
+        if (store.talents.value.none { it.id == entity.id }) store.talents.value = store.talents.value + entity
+    }
+    override suspend fun insertAll(entities: List<TalentEntity>) = entities.forEach { insert(it) }
+    override suspend fun clear() {
+        store.talents.value = emptyList()
+    }
+}
+
+class FakeFocusDao(private val store: FakeStore) : FocusDao {
+    override fun observe(): Flow<FocusSessionEntity?> = store.focus
+    override suspend fun get(): FocusSessionEntity? = store.focus.value
+    override suspend fun upsert(session: FocusSessionEntity) {
+        store.focus.value = session
+    }
+    override suspend fun clear() {
+        store.focus.value = null
+    }
+}
+
 fun fakeRepository(store: FakeStore = FakeStore(), time: FakeTime = FakeTime()): GameRepository = GameRepository(
     heroDao = FakeHeroDao(store),
     questDao = FakeQuestDao(store),
@@ -251,6 +331,8 @@ fun fakeRepository(store: FakeStore = FakeStore(), time: FakeTime = FakeTime()):
     logDao = FakeLogDao(store),
     shopDao = FakeShopDao(store),
     achievementDao = FakeAchievementDao(store),
+    talentDao = FakeTalentDao(store),
+    focusDao = FakeFocusDao(store),
     tx = DirectTransactions,
     time = time,
 )

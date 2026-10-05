@@ -6,6 +6,8 @@ import com.ascend.app.data.local.AttributeXp
 import com.ascend.app.data.local.BookDao
 import com.ascend.app.data.local.BookEntity
 import com.ascend.app.data.local.DayActivity
+import com.ascend.app.data.local.FocusDao
+import com.ascend.app.data.local.FocusSessionEntity
 import com.ascend.app.data.local.HeroDao
 import com.ascend.app.data.local.HeroEntity
 import com.ascend.app.data.local.LogCounters
@@ -16,20 +18,35 @@ import com.ascend.app.data.local.QuestDao
 import com.ascend.app.data.local.QuestEntity
 import com.ascend.app.data.local.ShopDao
 import com.ascend.app.data.local.ShopItemEntity
+import com.ascend.app.data.local.TalentDao
+import com.ascend.app.data.local.TalentEntity
+import com.ascend.app.data.local.hasTarget
 import com.ascend.app.data.local.isHabit
 import com.ascend.app.data.local.schedule
 import com.ascend.app.domain.BookDraft
+import com.ascend.app.domain.BossState
+import com.ascend.app.domain.ChallengeBoard
 import com.ascend.app.domain.DayPlan
 import com.ascend.app.domain.DayPlanner
+import com.ascend.app.domain.FocusSession
 import com.ascend.app.domain.HeroState
 import com.ascend.app.domain.HeroStatistics
 import com.ascend.app.domain.PurchaseResult
 import com.ascend.app.domain.QuestDraft
 import com.ascend.app.domain.RewardOutcome
+import com.ascend.app.domain.TalentResult
+import com.ascend.app.domain.WeekRecap
 import com.ascend.core.Achievement
 import com.ascend.core.AchievementRules
+import com.ascend.core.ActivityStats
 import com.ascend.core.Attribute
+import com.ascend.core.Boss
+import com.ascend.core.BossFight
+import com.ascend.core.Challenge
+import com.ascend.core.Challenges
+import com.ascend.core.Combo
 import com.ascend.core.Difficulty
+import com.ascend.core.HeroProfile
 import com.ascend.core.HeroStats
 import com.ascend.core.HeroTitle
 import com.ascend.core.Milestones
@@ -42,9 +59,14 @@ import com.ascend.core.RewardEngine
 import com.ascend.core.RewardInput
 import com.ascend.core.StreakInfo
 import com.ascend.core.Streaks
+import com.ascend.core.Talent
+import com.ascend.core.TalentPurchase
 import com.ascend.core.Units
+import com.ascend.core.WeeklyBoss
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
 /**
@@ -59,6 +81,8 @@ class GameRepository(
     private val logDao: LogDao,
     private val shopDao: ShopDao,
     private val achievementDao: AchievementDao,
+    private val talentDao: TalentDao,
+    private val focusDao: FocusDao,
     private val tx: TransactionRunner,
     private val time: TimeProvider,
 ) {
@@ -72,9 +96,12 @@ class GameRepository(
         logDao.observeTotalXp(),
         logDao.observeGold(),
         logDao.observeAttributeXp(),
-        combine(logDao.observeActiveDays(), time.todayFlow()) { days, today -> days to today },
-    ) { hero, totalXp, gold, attributeXp, daysAndToday ->
-        hero?.let { buildHeroState(it, totalXp, gold, attributeXp, daysAndToday.first, daysAndToday.second) }
+        combine(logDao.observeActiveDays(), time.todayFlow(), talentDao.observeAll()) { days, today, talents ->
+            Triple(days, today, talents)
+        },
+    ) { hero, totalXp, gold, attributeXp, extra ->
+        val (days, today, talents) = extra
+        hero?.let { buildHeroState(it, totalXp, gold, attributeXp, days, today, talents.mapNotNull { t -> Talent.byName(t.id) }.toSet()) }
     }
 
     val quests: Flow<List<QuestEntity>> = questDao.observeAll()
@@ -103,6 +130,58 @@ class GameRepository(
         )
     }
 
+    /** Доска испытаний на сегодня и на эту неделю. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val challengeBoard: Flow<ChallengeBoard> = time.todayFlow().flatMapLatest { today ->
+        val weekStart = Challenges.weekStart(today)
+        combine(
+            logDao.observeRange(weekStart, weekStart + 6),
+            logDao.observeRefIds(LogKind.CHALLENGE),
+            logDao.observeXpBefore(today),
+            combine(bookDao.observeAll(), questDao.observeAll()) { books, quests -> books.isNotEmpty() to quests.any { it.hasTarget && !it.archived } },
+        ) { weekLogs, claimed, xpBefore, flags ->
+            val profile = HeroProfile(
+                level = Progression.heroLevel(xpBefore).level,
+                hasBooks = flags.first,
+                hasTargets = flags.second,
+            )
+            val dayStats = activityStats(weekLogs.filter { it.day == today })
+            val weekStats = activityStats(weekLogs)
+            ChallengeBoard(
+                daily = Challenges.daily(today, profile).map { it.progress(dayStats) },
+                weekly = Challenges.weekly(today, profile).map { it.progress(weekStats) },
+                claimed = claimed.toSet(),
+                weekStart = weekStart,
+            )
+        }
+    }
+
+    /** Босс недели: его сила замораживается по уровню героя на начало недели. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val bossState: Flow<BossState> = time.todayFlow().flatMapLatest { today ->
+        val weekStart = Challenges.weekStart(today)
+        combine(
+            logDao.observeRange(weekStart, weekStart + 6),
+            logDao.observeXpBefore(weekStart),
+        ) { weekLogs, xpBefore ->
+            val boss = WeeklyBoss.forWeek(today, Progression.heroLevel(xpBefore).level)
+            val defeat = weekLogs.firstOrNull { it.kind == LogKind.BOSS && it.refId == boss.id }
+            BossState(
+                fight = WeeklyBoss.fight(boss, bossDamage(weekLogs)),
+                defeatedAt = defeat?.timestamp,
+                daysLeft = (weekStart + 6 - today).toInt().coerceAtLeast(0),
+            )
+        }
+    }
+
+    val focusSession: Flow<FocusSession?> = focusDao.observe().map { it?.toDomain() }
+
+    /** Летопись: последние записи журнала. */
+    fun journal(limit: Int = 400): Flow<List<LogEntity>> = logDao.observeRecent(limit)
+
+    fun weekRecap(weekStart: Long): Flow<WeekRecap> =
+        logDao.observeRange(weekStart, weekStart + 6).map { logs -> recapOf(weekStart, logs) }
+
     fun dayPlan(day: Long): Flow<DayPlan> = combine(
         questDao.observeAll(),
         logDao.observeDay(day),
@@ -119,6 +198,8 @@ class GameRepository(
     fun bookQuests(id: Long): Flow<List<QuestEntity>> = questDao.observeForBook(id)
 
     fun recentLogs(limit: Int = 30): Flow<List<LogEntity>> = logDao.observeRecent(limit)
+
+    fun questFlow(id: Long): Flow<QuestEntity?> = questDao.observe(id)
 
     suspend fun quest(id: Long): QuestEntity? = questDao.get(id)
 
@@ -146,9 +227,21 @@ class GameRepository(
         heroDao.upsert(hero.copy(reminderEnabled = enabled, reminderMinutes = minutes.coerceIn(0, 24 * 60 - 1)))
     }
 
+    suspend fun setSound(enabled: Boolean) = tx.transaction {
+        val hero = heroDao.get() ?: return@transaction
+        heroDao.upsert(hero.copy(soundEnabled = enabled))
+    }
+
+    suspend fun setReduceMotion(enabled: Boolean) = tx.transaction {
+        val hero = heroDao.get() ?: return@transaction
+        heroDao.upsert(hero.copy(reduceMotion = enabled))
+    }
+
     suspend fun resetProgress() = tx.transaction {
         logDao.clear()
         achievementDao.clear()
+        talentDao.clear()
+        focusDao.clear()
         questDao.clear()
         bookDao.clear()
         shopDao.clear()
@@ -163,6 +256,7 @@ class GameRepository(
         val target = draft.target?.takeIf { it > 0 }
         val unit = draft.unit?.trim()?.takeIf { target != null && it.isNotEmpty() }
         val isHabit = draft.kind == QuestKind.HABIT
+        val note = draft.note?.trim()?.takeIf { it.isNotEmpty() }?.take(300)
         val existing = if (draft.id != 0L) questDao.get(draft.id) else null
         if (existing == null) {
             val now = time.now()
@@ -181,6 +275,7 @@ class GameRepository(
                     bookId = draft.bookId,
                     createdAt = now,
                     createdDay = time.today(),
+                    note = note,
                 ),
             )
         } else {
@@ -197,6 +292,9 @@ class GameRepository(
                     dueDay = if (isHabit) null else draft.dueDay ?: existing.dueDay ?: time.today(),
                     timeMinutes = draft.timeMinutes,
                     bookId = draft.bookId,
+                    note = note,
+                    // Разовая задача, ставшая привычкой, снова доступна для выполнения.
+                    completedAt = if (isHabit) null else existing.completedAt,
                 ),
             )
             existing.id
@@ -215,7 +313,10 @@ class GameRepository(
     }
 
     /** Удаление квеста не отнимает заработанный опыт — история остаётся в журнале. */
-    suspend fun deleteQuest(id: Long) = tx.transaction { questDao.delete(id) }
+    suspend fun deleteQuest(id: Long) = tx.transaction {
+        if (focusDao.get()?.questId == id) focusDao.clear()
+        questDao.delete(id)
+    }
 
     suspend fun completeQuest(questId: Long, amount: Int): RewardOutcome? = tx.transaction {
         val quest = questDao.get(questId) ?: return@transaction null
@@ -239,6 +340,56 @@ class GameRepository(
                 logDao.deletePerfectDay(log.day)
             }
         }
+    }
+
+    // endregion
+
+    // region Фокус
+
+    /** Запускает таймер фокуса по квесту; активная сессия заменяется новой. */
+    suspend fun startFocus(questId: Long, minutes: Int): Boolean = tx.transaction {
+        val quest = questDao.get(questId) ?: return@transaction false
+        focusDao.upsert(
+            FocusSessionEntity(
+                questId = quest.id,
+                title = quest.title,
+                emoji = quest.emoji,
+                startedAt = time.now(),
+                targetMinutes = minutes.coerceIn(1, 24 * 60),
+            ),
+        )
+        true
+    }
+
+    suspend fun pauseFocus() = tx.transaction {
+        val session = focusDao.get() ?: return@transaction
+        if (session.pausedAt == null) focusDao.upsert(session.copy(pausedAt = time.now()))
+    }
+
+    suspend fun resumeFocus() = tx.transaction {
+        val session = focusDao.get() ?: return@transaction
+        val pausedAt = session.pausedAt ?: return@transaction
+        focusDao.upsert(session.copy(pausedAt = null, pausedTotal = session.pausedTotal + (time.now() - pausedAt)))
+    }
+
+    suspend fun cancelFocus() = tx.transaction { focusDao.clear() }
+
+    /**
+     * Завершает сессию и засчитывает квест: минуты идут как количество для квестов в минутах,
+     * остальные засчитываются как один шаг. Если квест уже выполнен сегодня — просто закрывает сессию.
+     */
+    suspend fun finishFocus(): RewardOutcome? = tx.transaction {
+        val session = focusDao.get() ?: return@transaction null
+        focusDao.clear()
+        val questId = session.questId ?: return@transaction null
+        val quest = questDao.get(questId) ?: return@transaction null
+        val minutes = session.toDomain().elapsedMinutes(time.now()).coerceAtLeast(1)
+        val amount = if (quest.hasTarget && quest.unit == Units.MINUTES) minutes else 1
+        val today = time.today()
+        val blocked = quest.archived ||
+            (quest.isHabit && quest.lastCompletedDay == today) ||
+            (!quest.isHabit && quest.completedAt != null)
+        if (blocked) null else completeInternal(quest, amount, today)
     }
 
     // endregion
@@ -320,11 +471,16 @@ class GameRepository(
         }
         if (linked != null) return@transaction completeInternal(linked, pages, today)
 
+        val now = time.now()
+        val todayLogs = logDao.getDay(today)
         val lastActive = logDao.activeDays().firstOrNull()
         val reward = RewardEngine.readingSession(
             pages = pages,
             isFirstCompletionToday = lastActive != today,
             daysSinceLastActive = lastActive?.let { today - it },
+            talents = ownedTalents(),
+            hour = time.hour(),
+            comboStep = Combo.step(activeTimestamps(todayLogs), now),
         )
         record(
             reward = reward,
@@ -342,7 +498,7 @@ class GameRepository(
 
     // endregion
 
-    // region Лавка наград
+    // region Лавка наград и таланты
 
     suspend fun saveShopItem(id: Long, title: String, emoji: String, cost: Int): Unit = tx.transaction {
         val existing = if (id != 0L) shopDao.get(id) else null
@@ -388,13 +544,76 @@ class GameRepository(
         )
     }
 
+    suspend fun unlockTalent(talent: Talent): TalentResult = tx.transaction {
+        val owned = ownedTalents()
+        val level = Progression.heroLevel(logDao.totalXp()).level
+        val check = TalentPurchase.check(talent, owned, level, logDao.gold())
+        if (check != TalentPurchase.Ok) return@transaction TalentResult.Refused(check)
+        val today = time.today()
+        val now = time.now()
+        val hour = time.hour()
+        talentDao.insert(TalentEntity(talent.name, now))
+        logDao.insert(
+            LogEntity(
+                kind = LogKind.TALENT,
+                title = talent.title,
+                emoji = talent.emoji,
+                day = today,
+                timestamp = now,
+                hour = hour,
+                gold = -talent.cost,
+                refId = talent.name,
+            ),
+        )
+        TalentResult.Unlocked(talent, unlockAchievements(today, now, hour))
+    }
+
+    // endregion
+
+    // region Резервная копия
+
+    suspend fun snapshot(): BackupSnapshot = tx.transaction {
+        BackupSnapshot(
+            exportedAt = time.now(),
+            hero = heroDao.get(),
+            quests = questDao.getAll(),
+            books = bookDao.getAll(),
+            logs = logDao.getAll(),
+            shopItems = shopDao.getAll(),
+            achievements = achievementDao.getAll(),
+            talents = talentDao.getAll(),
+        )
+    }
+
+    /** Полностью заменяет состояние приложения содержимым копии. */
+    suspend fun restore(snapshot: BackupSnapshot) = tx.transaction {
+        logDao.clear()
+        achievementDao.clear()
+        talentDao.clear()
+        focusDao.clear()
+        questDao.clear()
+        bookDao.clear()
+        shopDao.clear()
+        heroDao.clear()
+        snapshot.hero?.let { heroDao.upsert(it) }
+        bookDao.insertAll(snapshot.books)
+        questDao.insertAll(snapshot.quests)
+        logDao.insertAll(snapshot.logs)
+        shopDao.insertAll(snapshot.shopItems)
+        achievementDao.insertAll(snapshot.achievements)
+        talentDao.insertAll(snapshot.talents)
+    }
+
     // endregion
 
     // region Внутренняя механика
 
     private suspend fun completeInternal(quest: QuestEntity, amount: Int, today: Long): RewardOutcome {
+        val now = time.now()
+        val todayLogs = logDao.getDay(today)
         val lastActive = logDao.activeDays().firstOrNull()
         val target = quest.targetAmount?.takeIf { it > 0 }
+        val attributeXp = logDao.attributeXp()
         val reward = RewardEngine.calculate(
             RewardInput(
                 difficulty = quest.difficulty,
@@ -406,6 +625,10 @@ class GameRepository(
                 previousDueDay = if (quest.isHabit) quest.schedule.previousDueDay(today) else null,
                 isFirstCompletionToday = lastActive != today,
                 daysSinceLastActive = lastActive?.let { today - it },
+                hour = time.hour(),
+                comboStep = Combo.step(activeTimestamps(todayLogs), now),
+                talents = ownedTalents(),
+                isWeakestAttribute = isWeakest(quest.attribute, attributeXp),
             ),
         )
         return record(
@@ -459,6 +682,7 @@ class GameRepository(
                 overachieved = reward.overachieved,
                 comeback = reward.comeback,
                 bookPageBefore = book?.currentPage,
+                comboStep = reward.comboStep,
             ),
         )
         if (quest != null) {
@@ -474,6 +698,8 @@ class GameRepository(
         }
         val finishedBook = book?.let { advanceBook(it, amount, now, today, hour) }
         val perfectDay = awardPerfectDay(today, now, hour)
+        val challenges = awardChallenges(today, now, hour)
+        val (bossFight, bossDefeated) = awardBoss(today, now, hour)
         val achievements = unlockAchievements(today, now, hour)
 
         return RewardOutcome(
@@ -497,6 +723,10 @@ class GameRepository(
             achievements = achievements,
             finishedBook = finishedBook?.title,
             perfectDay = perfectDay,
+            comboStep = reward.comboStep,
+            challenges = challenges,
+            bossDefeated = if (bossDefeated) bossFight.boss else null,
+            bossHit = bossFight,
         )
     }
 
@@ -545,6 +775,72 @@ class GameRepository(
             ),
         )
         return true
+    }
+
+    /** Выдаёт награды за только что пройденные испытания; награда может закрыть и следующее. */
+    private suspend fun awardChallenges(today: Long, now: Long, hour: Int): List<Challenge> {
+        val weekStart = Challenges.weekStart(today)
+        val profile = HeroProfile(
+            level = Progression.heroLevel(logDao.xpBefore(today)).level,
+            hasBooks = bookDao.count() > 0,
+            hasTargets = questDao.getAll().any { it.hasTarget && !it.archived },
+        )
+        val candidates = Challenges.daily(today, profile) + Challenges.weekly(today, profile)
+        val claimed = logDao.refIds(LogKind.CHALLENGE).toMutableSet()
+        val completed = mutableListOf<Challenge>()
+        repeat(3) {
+            val weekLogs = logDao.getRange(weekStart, weekStart + 6)
+            val dayStats = activityStats(weekLogs.filter { it.day == today })
+            val weekStats = activityStats(weekLogs)
+            val fresh = candidates.filter { challenge ->
+                challenge.id !in claimed && challenge.progress(
+                    if (challenge.period == com.ascend.core.ChallengePeriod.DAILY) dayStats else weekStats,
+                ).done
+            }
+            if (fresh.isEmpty()) return completed
+            for (challenge in fresh) {
+                logDao.insert(
+                    LogEntity(
+                        kind = LogKind.CHALLENGE,
+                        title = challenge.title,
+                        emoji = challenge.emoji,
+                        day = today,
+                        timestamp = now,
+                        hour = hour,
+                        xp = challenge.xp,
+                        gold = challenge.gold,
+                        refId = challenge.id,
+                    ),
+                )
+                claimed += challenge.id
+                completed += challenge
+            }
+        }
+        return completed
+    }
+
+    /** Проверяет, повержен ли босс недели; возвращает состояние боя и флаг «добит только что». */
+    private suspend fun awardBoss(today: Long, now: Long, hour: Int): Pair<BossFight, Boolean> {
+        val weekStart = Challenges.weekStart(today)
+        val boss = WeeklyBoss.forWeek(today, Progression.heroLevel(logDao.xpBefore(weekStart)).level)
+        val weekLogs = logDao.getRange(weekStart, weekStart + 6)
+        val fight = WeeklyBoss.fight(boss, bossDamage(weekLogs))
+        val alreadyDefeated = weekLogs.any { it.kind == LogKind.BOSS && it.refId == boss.id }
+        if (!fight.defeated || alreadyDefeated) return fight to false
+        logDao.insert(
+            LogEntity(
+                kind = LogKind.BOSS,
+                title = "Повержен: ${boss.name}",
+                emoji = boss.emoji,
+                day = today,
+                timestamp = now,
+                hour = hour,
+                xp = boss.rewardXp,
+                gold = boss.rewardGold,
+                refId = boss.id,
+            ),
+        )
+        return fight to true
     }
 
     /** Открывает заслуженные достижения; повторяет проверку, ведь награда может поднять уровень. */
@@ -597,6 +893,18 @@ class GameRepository(
         if (reopen) logDao.deleteBookFinished(bookId)
     }
 
+    private suspend fun ownedTalents(): Set<Talent> = talentDao.ids().mapNotNull(Talent::byName).toSet()
+
+    private fun activeTimestamps(logs: List<LogEntity>): List<Long> =
+        logs.filter { it.kind == LogKind.QUEST || it.kind == LogKind.READING }.map { it.timestamp }
+
+    private fun isWeakest(attribute: Attribute, attributeXp: List<AttributeXp>): Boolean {
+        val xp = Attribute.entries.associateWith { a -> attributeXp.firstOrNull { it.attribute == a }?.xp ?: 0L }
+        val min = xp.values.min()
+        val max = xp.values.max()
+        return max > min && xp.getValue(attribute) == min
+    }
+
     private suspend fun attributeXpOf(attribute: Attribute): Long =
         logDao.attributeXp().firstOrNull { it.attribute == attribute }?.xp ?: 0L
 
@@ -631,6 +939,10 @@ class GameRepository(
         comebacks = counters.comebacks,
         purchases = counters.purchases,
         perfectDays = counters.perfectDays,
+        challenges = counters.challenges,
+        bosses = counters.bosses,
+        talents = counters.talents,
+        bestCombo = if (counters.quests > 0) counters.bestCombo else 0,
     )
 
     private fun buildHeroState(
@@ -640,6 +952,7 @@ class GameRepository(
         attributeXp: List<AttributeXp>,
         activeDays: List<Long>,
         today: Long,
+        talents: Set<Talent>,
     ): HeroState {
         val xp = Attribute.entries.associateWith { attribute ->
             attributeXp.firstOrNull { it.attribute == attribute }?.xp ?: 0L
@@ -660,6 +973,34 @@ class GameRepository(
             createdAt = hero.createdAt,
             reminderEnabled = hero.reminderEnabled,
             reminderMinutes = hero.reminderMinutes,
+            soundEnabled = hero.soundEnabled,
+            reduceMotion = hero.reduceMotion,
+            talents = talents,
+        )
+    }
+
+    private fun recapOf(weekStart: Long, logs: List<LogEntity>): WeekRecap {
+        val active = logs.filter { it.kind == LogKind.QUEST || it.kind == LogKind.READING }
+        val xpByDay = logs.filter { it.kind != LogKind.PURCHASE && it.kind != LogKind.TALENT }
+            .groupBy { it.day }
+            .mapValues { (_, dayLogs) -> dayLogs.sumOf { it.xp.toLong() } }
+        val best = xpByDay.maxByOrNull { it.value }
+        val topAttribute = active.mapNotNull { it.attribute }
+            .groupingBy { it }
+            .eachCount()
+            .maxByOrNull { it.value }
+            ?.key
+        return WeekRecap(
+            weekStart = weekStart,
+            xp = xpByDay.values.sum(),
+            quests = logs.count { it.kind == LogKind.QUEST },
+            activeDays = active.map { it.day }.distinct().size,
+            pages = active.filter { it.bookId != null || it.unit == Units.PAGES }.sumOf { it.amount },
+            bestDay = best?.key,
+            bestDayXp = best?.value ?: 0L,
+            topAttribute = topAttribute,
+            challengesDone = logs.count { it.kind == LogKind.CHALLENGE },
+            bossDefeated = logs.any { it.kind == LogKind.BOSS },
         )
     }
 
@@ -678,5 +1019,37 @@ class GameRepository(
 
     private fun achievementById(id: String): Achievement? = Achievement.entries.firstOrNull { it.name == id }
 
+    private fun FocusSessionEntity.toDomain() = FocusSession(
+        questId = questId,
+        title = title,
+        emoji = emoji,
+        startedAt = startedAt,
+        targetMinutes = targetMinutes,
+        pausedAt = pausedAt,
+        pausedTotal = pausedTotal,
+    )
+
     // endregion
+
+    companion object {
+        private val CHALLENGE_XP_KINDS = setOf(LogKind.QUEST, LogKind.READING, LogKind.BOOK_FINISHED, LogKind.PERFECT_DAY, LogKind.ACHIEVEMENT)
+
+        /** Статистика периода для испытаний: опыт считается без наград самих испытаний и босса. */
+        fun activityStats(logs: List<LogEntity>): ActivityStats {
+            val active = logs.filter { it.kind == LogKind.QUEST || it.kind == LogKind.READING }
+            return ActivityStats(
+                quests = logs.count { it.kind == LogKind.QUEST },
+                xp = logs.filter { it.kind in CHALLENGE_XP_KINDS }.sumOf { it.xp.toLong() },
+                pages = active.filter { it.bookId != null || it.unit == Units.PAGES }.sumOf { it.amount },
+                attributes = active.mapNotNull { it.attribute }.toSet(),
+                early = active.count { it.hour < 9 },
+                overachieved = active.count { it.overachieved },
+                activeDays = active.map { it.day }.distinct().size,
+                perfectDays = logs.count { it.kind == LogKind.PERFECT_DAY },
+            )
+        }
+
+        /** Урон боссу: весь опыт недели, кроме награды за самого босса. */
+        fun bossDamage(logs: List<LogEntity>): Long = logs.filter { it.kind != LogKind.BOSS }.sumOf { it.xp.toLong() }
+    }
 }

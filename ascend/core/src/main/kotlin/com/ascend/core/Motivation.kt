@@ -73,9 +73,16 @@ object Motivation {
         "Ты вернулся — и это главное. Бонус за возвращение!",
     )
 
+    private val combo = listOf(
+        "Комбо! Ты в потоке — не сбавляй темп.",
+        "Удар за ударом — герой разогнался!",
+        "Цепочка растёт. Так и покоряют вершины.",
+    )
+
     fun encouragement(reward: Reward, hasTarget: Boolean, seed: Int): String {
         val pool = when {
             reward.comeback -> comeback
+            reward.comboStep >= 2 -> combo
             reward.overachieved -> overachieve
             hasTarget && reward.hitTarget -> targetHit
             hasTarget -> partialProgress

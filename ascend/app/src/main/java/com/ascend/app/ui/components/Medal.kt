@@ -9,6 +9,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.AutoFixHigh
+import androidx.compose.material.icons.rounded.Flag
+import androidx.compose.material.icons.rounded.Shield
+import androidx.compose.material.icons.rounded.Whatshot
 import androidx.compose.material.icons.rounded.AutoStories
 import androidx.compose.material.icons.rounded.Autorenew
 import androidx.compose.material.icons.rounded.Balance
@@ -59,6 +63,10 @@ val Metric.icon: ImageVector
         Metric.COMEBACKS -> Icons.Rounded.Autorenew
         Metric.PURCHASES -> Icons.Rounded.Redeem
         Metric.PERFECT_DAYS -> Icons.Rounded.AutoAwesome
+        Metric.CHALLENGES -> Icons.Rounded.Flag
+        Metric.BOSSES -> Icons.Rounded.Shield
+        Metric.TALENTS -> Icons.Rounded.AutoFixHigh
+        Metric.COMBO -> Icons.Rounded.Whatshot
     }
 
 /** Медаль достижения: зубчатая звезда цвета ступени, блик и иконка. Закрытая — тусклая с замком. */

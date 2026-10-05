@@ -11,8 +11,10 @@ import androidx.room.RoomDatabase
         LogEntity::class,
         ShopItemEntity::class,
         AchievementEntity::class,
+        TalentEntity::class,
+        FocusSessionEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class AscendDatabase : RoomDatabase() {
@@ -22,8 +24,11 @@ abstract class AscendDatabase : RoomDatabase() {
     abstract fun logDao(): LogDao
     abstract fun shopDao(): ShopDao
     abstract fun achievementDao(): AchievementDao
+    abstract fun talentDao(): TalentDao
+    abstract fun focusDao(): FocusDao
 
     companion object {
         const val NAME = "ascend.db"
+        const val VERSION = 2
     }
 }

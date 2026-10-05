@@ -216,7 +216,7 @@ fun RewardToast(outcome: RewardOutcome, onUndo: () -> Unit, onDismiss: () -> Uni
             ) {
                 outcome.bonuses.forEachIndexed { index, bonus ->
                     Pill(
-                        "${bonus.kind.title} +${bonus.xp}",
+                        "${bonus.label} +${bonus.xp}",
                         AscendColors.Gold,
                         modifier = Modifier.reveal(index + 2, delayStep = 90L, offsetY = 10.dp),
                     )
@@ -357,6 +357,70 @@ private fun RewardNumbers(xp: Int, gold: Int) {
             GoldCoin(diameter = 14.dp)
             Spacer(Modifier.width(4.dp))
             CountingText(value = gold, prefix = "+", style = MaterialTheme.typography.labelLarge, color = AscendColors.Gold)
+        }
+    }
+}
+
+@Composable
+fun ChallengeToast(challenge: com.ascend.core.Challenge, onDismiss: () -> Unit) {
+    val burst = rememberBurst()
+    ToastSurface(accent = AscendColors.Success, onDismiss = onDismiss) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) {
+                ParticleBurst(
+                    trigger = burst,
+                    colors = listOf(AscendColors.Success, AscendColors.Gold, Color.White),
+                    modifier = Modifier.size(56.dp),
+                    count = 26,
+                    power = 64.dp,
+                )
+                Box(
+                    Modifier
+                        .size(50.dp)
+                        .clip(CircleShape)
+                        .background(Brush.radialGradient(listOf(AscendColors.Success.copy(alpha = 0.5f), AscendColors.Success.copy(alpha = 0.08f)))),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(challenge.emoji, fontSize = 26.sp)
+                }
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(challenge.period.title.uppercase(), style = MaterialTheme.typography.labelSmall, color = AscendColors.Success)
+                Text("Испытание пройдено!", style = MaterialTheme.typography.titleMedium, color = AscendColors.TextPrimary)
+                Text(challenge.title, style = MaterialTheme.typography.bodySmall, color = AscendColors.TextSecondary, maxLines = 2)
+            }
+            RewardNumbers(challenge.xp, challenge.gold)
+        }
+    }
+}
+
+@Composable
+fun TalentToast(talent: com.ascend.core.Talent, onDismiss: () -> Unit) {
+    val burst = rememberBurst()
+    ToastSurface(accent = AscendColors.VioletLight, onDismiss = onDismiss) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) {
+                ParticleBurst(
+                    trigger = burst,
+                    colors = listOf(AscendColors.VioletLight, AscendColors.Cyan, Color.White),
+                    modifier = Modifier.size(56.dp),
+                    count = 26,
+                    power = 64.dp,
+                )
+                Text(talent.emoji, fontSize = 32.sp)
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("НОВЫЙ ТАЛАНТ · ${talent.branch.title.uppercase()}", style = MaterialTheme.typography.labelSmall, color = AscendColors.VioletLight)
+                Text(talent.title, style = MaterialTheme.typography.titleMedium, color = AscendColors.TextPrimary)
+                Text(talent.description, style = MaterialTheme.typography.bodySmall, color = AscendColors.TextSecondary, maxLines = 2)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                GoldCoin(diameter = 16.dp)
+                Spacer(Modifier.width(4.dp))
+                Text("−${talent.cost}", style = MaterialTheme.typography.titleMedium, color = AscendColors.Gold)
+            }
         }
     }
 }

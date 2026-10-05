@@ -7,8 +7,11 @@ import androidx.compose.runtime.setValue
 import com.ascend.app.domain.Celebration
 import com.ascend.app.domain.RewardOutcome
 import com.ascend.core.Achievement
+import com.ascend.core.Boss
+import com.ascend.core.Challenge
 import com.ascend.core.LevelInfo
 import com.ascend.core.Milestones
+import com.ascend.core.Talent
 
 sealed interface CelebrationItem {
     val id: Long
@@ -44,6 +47,19 @@ sealed interface CelebrationItem {
 
     data class Purchase(override val id: Long, val emoji: String, val title: String, val cost: Int) : CelebrationItem {
         override val durationMillis: Long get() = 2_800
+    }
+
+    data class ChallengeDone(override val id: Long, val challenge: Challenge) : CelebrationItem {
+        override val durationMillis: Long get() = 3_200
+    }
+
+    /** Победа над боссом недели — полноэкранная церемония, закрывается кнопкой. */
+    data class BossDefeated(override val id: Long, val boss: Boss) : CelebrationItem {
+        override val durationMillis: Long get() = Long.MAX_VALUE
+    }
+
+    data class TalentUnlocked(override val id: Long, val talent: Talent) : CelebrationItem {
+        override val durationMillis: Long get() = 3_200
     }
 }
 
@@ -104,6 +120,8 @@ class CelebrationState {
                         ),
                     )
                 }
+                outcome.challenges.forEach { add(CelebrationItem.ChallengeDone(nextId++, it)) }
+                outcome.bossDefeated?.let { add(CelebrationItem.BossDefeated(nextId++, it)) }
                 outcome.achievements.forEach { add(CelebrationItem.AchievementUnlocked(nextId++, it)) }
             }
             is Celebration.Purchased -> {
@@ -113,6 +131,10 @@ class CelebrationState {
                     add(CelebrationItem.LevelUp(nextId++, result.levelBefore, result.levelAfter, null))
                 }
                 result.achievements.forEach { add(CelebrationItem.AchievementUnlocked(nextId++, it)) }
+            }
+            is Celebration.TalentUnlocked -> {
+                add(CelebrationItem.TalentUnlocked(nextId++, celebration.result.talent))
+                celebration.result.achievements.forEach { add(CelebrationItem.AchievementUnlocked(nextId++, it)) }
             }
         }
     }

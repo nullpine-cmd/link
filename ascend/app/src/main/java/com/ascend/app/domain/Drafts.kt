@@ -18,6 +18,7 @@ data class QuestDraft(
     val dueDay: Long? = null,
     val timeMinutes: Int? = null,
     val bookId: Long? = null,
+    val note: String? = null,
 )
 
 data class BookDraft(

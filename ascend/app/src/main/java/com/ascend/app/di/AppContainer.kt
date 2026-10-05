@@ -29,6 +29,9 @@ class AppContainer(
     val time: TimeProvider,
     val celebrations: CelebrationBus = CelebrationBus(),
     val reminders: ReminderScheduler = ReminderScheduler.None,
+    val sounds: SoundPlayer = SoundPlayer.None,
+    /** Система просит убрать анимации (масштаб длительности 0 или спецвозможности). */
+    val systemReducesMotion: Boolean = false,
 )
 
 /** Планировщик ежедневного напоминания (реализация — в Android-слое). */

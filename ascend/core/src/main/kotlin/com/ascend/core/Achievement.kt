@@ -21,6 +21,10 @@ enum class Metric {
     COMEBACKS,
     PURCHASES,
     PERFECT_DAYS,
+    CHALLENGES,
+    BOSSES,
+    TALENTS,
+    COMBO,
 }
 
 enum class Achievement(
@@ -56,6 +60,14 @@ enum class Achievement(
     TREAT_YOURSELF("Заслуженный отдых", "Купи первую награду в лавке", Tier.BRONZE, Metric.PURCHASES, 1),
     PERFECT_DAY("Идеальный день", "Выполни все квесты дня (от трёх)", Tier.SILVER, Metric.PERFECT_DAYS, 1),
     PERFECT_WEEK("Безупречность", "Проведи 7 идеальных дней", Tier.GOLD, Metric.PERFECT_DAYS, 7),
+    CHALLENGER("Испытатель", "Пройди первое испытание", Tier.BRONZE, Metric.CHALLENGES, 1),
+    TRIAL_MASTER("Мастер испытаний", "Пройди 25 испытаний", Tier.GOLD, Metric.CHALLENGES, 25),
+    BOSS_HUNTER("Охотник на боссов", "Победи первого босса недели", Tier.SILVER, Metric.BOSSES, 1),
+    DRAGON_SLAYER("Истребитель драконов", "Победи 10 боссов недели", Tier.LEGENDARY, Metric.BOSSES, 10),
+    APPRENTICE("Ученик", "Открой первый талант", Tier.BRONZE, Metric.TALENTS, 1),
+    TALENTED("Одарённый", "Открой 5 талантов", Tier.GOLD, Metric.TALENTS, 5),
+    COMBO_STARTER("Разгон", "Собери комбо ×3", Tier.BRONZE, Metric.COMBO, 3),
+    COMBO_MASTER("Неудержимый ритм", "Собери комбо ×5", Tier.SILVER, Metric.COMBO, 5),
 }
 
 /** Срез статистики героя, по которому проверяются достижения. */
@@ -72,6 +84,10 @@ data class HeroStats(
     val comebacks: Long = 0,
     val purchases: Long = 0,
     val perfectDays: Long = 0,
+    val challenges: Long = 0,
+    val bosses: Long = 0,
+    val talents: Long = 0,
+    val bestCombo: Long = 0,
 ) {
     fun value(metric: Metric): Long = when (metric) {
         Metric.QUESTS -> questsCompleted
@@ -87,6 +103,10 @@ data class HeroStats(
         Metric.COMEBACKS -> comebacks
         Metric.PURCHASES -> purchases
         Metric.PERFECT_DAYS -> perfectDays
+        Metric.CHALLENGES -> challenges
+        Metric.BOSSES -> bosses
+        Metric.TALENTS -> talents
+        Metric.COMBO -> bestCombo
     }
 }
 

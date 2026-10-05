@@ -1,5 +1,6 @@
 package com.ascend.app.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -21,6 +22,8 @@ data class HeroEntity(
     val focusDay: Long? = null,
     val reminderEnabled: Boolean = false,
     val reminderMinutes: Int = 20 * 60,
+    @ColumnInfo(defaultValue = "1") val soundEnabled: Boolean = true,
+    @ColumnInfo(defaultValue = "0") val reduceMotion: Boolean = false,
 )
 
 @Entity(tableName = "quests", indices = [Index("bookId")])
@@ -45,6 +48,7 @@ data class QuestEntity(
     val bestStreak: Int = 0,
     val lastCompletedDay: Long? = null,
     val totalCompletions: Int = 0,
+    val note: String? = null,
 )
 
 val QuestEntity.schedule: WeekSchedule get() = WeekSchedule(scheduleMask)
@@ -70,7 +74,7 @@ val BookEntity.isFinished: Boolean get() = finishedAt != null
 val BookEntity.pagesLeft: Int get() = (totalPages - currentPage).coerceAtLeast(0)
 
 /** Журнал — единственный источник правды об опыте и золоте: всё остальное выводится из него. */
-enum class LogKind { QUEST, READING, BOOK_FINISHED, PERFECT_DAY, ACHIEVEMENT, PURCHASE }
+enum class LogKind { QUEST, READING, BOOK_FINISHED, PERFECT_DAY, ACHIEVEMENT, PURCHASE, CHALLENGE, BOSS, TALENT }
 
 @Entity(
     tableName = "activity_log",
@@ -96,6 +100,9 @@ data class LogEntity(
     val overachieved: Boolean = false,
     val comeback: Boolean = false,
     val bookPageBefore: Int? = null,
+    /** Ссылка на источник награды: испытание, босс недели или талант. */
+    val refId: String? = null,
+    @ColumnInfo(defaultValue = "0") val comboStep: Int = 0,
 )
 
 @Entity(tableName = "shop_items")
@@ -112,4 +119,23 @@ data class ShopItemEntity(
 data class AchievementEntity(
     @PrimaryKey val id: String,
     val unlockedAt: Long,
+)
+
+@Entity(tableName = "talents")
+data class TalentEntity(
+    @PrimaryKey val id: String,
+    val unlockedAt: Long,
+)
+
+/** Текущая сессия фокуса. Одна на всё приложение, переживает смерть процесса. */
+@Entity(tableName = "focus_session")
+data class FocusSessionEntity(
+    @PrimaryKey val id: Int = 1,
+    val questId: Long?,
+    val title: String,
+    val emoji: String,
+    val startedAt: Long,
+    val targetMinutes: Int,
+    val pausedAt: Long? = null,
+    val pausedTotal: Long = 0,
 )
